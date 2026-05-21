@@ -29,6 +29,7 @@ public class ControlPanel extends JPanel {
         this.add(startButton);
         this.startButton.addActionListener(e -> {
             statusPanel.setStatus("RUN");
+            statusPanel.startTimer();
         });
     }
 

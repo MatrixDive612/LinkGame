@@ -14,6 +14,8 @@ public class StatusPanel extends JPanel {
     int offSetY;
     int width;
     int height;
+    private boolean timerStarted = false; //avoid restarting the timer repeatedly
+
     public StatusPanel(int offSetX, int offSetY,int width, int height) {
         this.setLayout(null);
         this.setBounds(offSetX, offSetY, width, height);
@@ -35,7 +37,7 @@ public class StatusPanel extends JPanel {
             }
             timeLabel.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
         });
-        timer.start();
+        //timer.start();
         statusLabel.setFont(new Font("Arial", Font.BOLD, 50));
         timeLabel.setFont(new Font("Arial", Font.BOLD, 50));
         Dimension size = statusLabel.getPreferredSize();
@@ -49,6 +51,7 @@ public class StatusPanel extends JPanel {
         this.add(statusLabel);
         this.add(timeLabel);
     }
+
     public void setStatus(String text) {
         statusLabel.setText(text);
         Dimension size = statusLabel.getPreferredSize();
@@ -56,5 +59,12 @@ public class StatusPanel extends JPanel {
         int y = (height - size.height) / 3;
         statusLabel.setBounds(x, y, size.width, size.height);
         repaint();
+    }
+
+    public void startTimer() {
+        if (!timerStarted) {
+            timer.start();
+            timerStarted = true;
+        }
     }
 }
