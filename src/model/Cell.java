@@ -36,4 +36,6 @@ public class Cell {
         isEmpty = empty;
         iconIndex = 0;
     }
+
+    public void setIsEmpty(boolean flag) {isEmpty = flag; }
 }

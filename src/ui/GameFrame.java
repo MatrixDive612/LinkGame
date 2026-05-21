@@ -3,6 +3,7 @@ package ui;
 import model.Cell;
 import model.GameBoard;
 import model.Position;
+import utils.Utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,16 +36,18 @@ public class GameFrame extends JFrame{
         }*/
         for (int i = 0; i < 12; ++i)
             for (int j = 0; j < 12; ++j) board[i][j] = new Cell(new Position(i, j), true, 0);
-        //placing the chess:
-        for (int i = 1; i <= 10/*size*/; i++) {
-            for (int j = 1; j <= 10/*size*/; j++) {
-                //board[i][j] = new Cell(new Position(i, j), false, 1);
-                //mine:
-                board[i][j] = new Cell(new Position(i, j), false, random.nextInt(1,12));
+        do {
+            //placing the chess:
+            for (int i = 1; i <= 10/*size*/; i++) {
+                for (int j = 1; j <= 10/*size*/; j++) {
+                    //board[i][j] = new Cell(new Position(i, j), false, 1);
+                    //mine:
+                    board[i][j] = new Cell(new Position(i, j), false, random.nextInt(1, 12));
+                }
             }
-        }
-        //my little experiment:
-        //board[0][4] = new Cell(new Position(0, 4), false, 1);
+            //my little experiment:
+            //board[0][4] = new Cell(new Position(0, 4), false, 1);
+        } while (!Utils.isSolvable(new GameBoard(12, 12, board)));
 
         //BoardPanel boardPanel = new BoardPanel(new GameBoard(5, 5, board), 0, 100, 800, 800);
         BoardPanel boardPanel = new BoardPanel(new GameBoard(12, 12, board), 0, 100, 1000, 800);

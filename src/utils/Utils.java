@@ -3,6 +3,7 @@ package utils;
 import model.Cell;
 import model.GameBoard;
 import model.Position;
+import ui.BoardPanel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -113,5 +114,55 @@ public class Utils {
             return true;
         }
         return false;
+    }
+
+    public static boolean isSolvable(GameBoard gameBoard){
+        int rowCnt = gameBoard.getRowCnt();
+        int colCnt = gameBoard.getColCnt();
+        /*boolean[][] board = new boolean[rowCnt][colCnt];
+        for (int i = 0; i < rowCnt; ++i)
+            for (int j = 0; j < colCnt; ++j) board[i][j] = false;
+        for (int i = 1; i < rowCnt-1; i++)
+            for (int j = 1; j < colCnt-1; j++)
+                board[i][j] = true;*/
+
+        boolean flag1 = false;
+        do {
+            flag1 = false;
+            for (int i = 1; i < gameBoard.getRowCnt()-1; ++i)
+                for (int j = 1; j < gameBoard.getColCnt()-1; ++j){
+                    for (int k = i; k < gameBoard.getRowCnt()-1; ++k)
+                        for (int m = 1; m < gameBoard.getColCnt()-1; ++m){
+                            Cell c1 = gameBoard.getCell(i, j);
+                            Cell c2 = gameBoard.getCell(k, m);
+                            if (!c1.isEmpty() && !c2.isEmpty() && (i != k || j != m)) {//means that both cells are not deleted, and they're not the same cell
+                                if(c1.getIconIndex() == c2.getIconIndex())
+                                    if (canLinkAB(gameBoard, new Position(i, j), new Position(k, m))) {
+                                        /*board[i][j] = false;
+                                        board[k][m] = false;*/
+                                        c1.setIsEmpty(true); c2.setIsEmpty(true);
+                                        flag1 = true; //indicates that a change is made
+                                        break;
+                                    }
+                            }
+                        }
+                }
+        } while (flag1); //until flag1 == false, which means that no more changes could be made
+
+        boolean flag2 = true;
+        for (int i = 1; i < gameBoard.getRowCnt()-1; ++i) {
+            for (int j = 1; j < gameBoard.getColCnt()-1; ++j)
+                if (!gameBoard.getCell(i, j).isEmpty()) {
+                    flag2 = false; //indicates that there's still a cell left, so break the loop and return flag2 = false
+                    break;
+                }
+            if (!flag2) break;
+        }
+
+        for (int i = 1; i < rowCnt-1; i++)
+            for (int j = 1; j < colCnt-1; j++)
+                gameBoard.getCell(i, j).setIsEmpty(false);
+
+        return flag2;
     }
 }
