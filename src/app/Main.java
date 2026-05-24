@@ -256,7 +256,7 @@ public class Main {
         easyButton.setBounds(300, 220, 200, 60);
         easyButton.addActionListener(e -> {
             // 点击简单模式，进入游戏
-            GameFrame frame = new GameFrame("连连看", 1000, 1000);
+            GameFrame frame = new GameFrame("连连看", 1000, 1000, false);
             frame.repaint();
             difficultyFrame.dispose();
         });
@@ -268,7 +268,7 @@ public class Main {
         hardButton.setBounds(300, 320, 200, 60);
         hardButton.addActionListener(e -> {
             // 点击困难模式，进入游戏
-            GameFrame frame = new GameFrame("连连看", 1000, 1000);
+            GameFrame frame = new GameFrame("连连看", 1000, 1000, true);
             frame.repaint();
             difficultyFrame.dispose();
         });

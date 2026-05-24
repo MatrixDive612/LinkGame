@@ -116,7 +116,7 @@ public class Utils {
         return false;
     }
 
-    public static boolean isSolvable(GameBoard gameBoard){
+    public static boolean isSolvable(GameBoard gameBoard, boolean isHardMode){
         int rowCnt = gameBoard.getRowCnt();
         int colCnt = gameBoard.getColCnt();
         /*boolean[][] board = new boolean[rowCnt][colCnt];
@@ -129,10 +129,10 @@ public class Utils {
         boolean flag1 = false;
         do {
             flag1 = false;
-            for (int i = 1; i < gameBoard.getRowCnt()-1; ++i)
-                for (int j = 1; j < gameBoard.getColCnt()-1; ++j){
-                    for (int k = i; k < gameBoard.getRowCnt()-1; ++k)
-                        for (int m = 1; m < gameBoard.getColCnt()-1; ++m){
+            for (int i = 1; i < rowCnt-1; ++i)
+                for (int j = 1; j < colCnt-1; ++j){
+                    for (int k = i; k < rowCnt-1; ++k)
+                        for (int m = 1; m < colCnt-1; ++m){
                             Cell c1 = gameBoard.getCell(i, j);
                             Cell c2 = gameBoard.getCell(k, m);
                             if (!c1.isEmpty() && !c2.isEmpty() && (i != k || j != m)) {//means that both cells are not deleted, and they're not the same cell
@@ -159,9 +159,18 @@ public class Utils {
             if (!flag2) break;
         }
 
-        for (int i = 1; i < rowCnt-1; i++)
-            for (int j = 1; j < colCnt-1; j++)
-                gameBoard.getCell(i, j).setIsEmpty(false);
+        if (isHardMode) {
+            for (int i = 1; i < rowCnt-1; i++)
+                for (int j = 1; j < colCnt-1; j++)
+                    gameBoard.getCell(i, j).setIsEmpty(false);
+        }
+        else{
+            for (int i = 1; i <= 4; ++i)
+                for (int j = 1; j <= 4; ++j) gameBoard.getCell(i, j).setIsEmpty(false);
+
+            for (int i = 6; i <= 9; ++i)
+                for (int j = 6; j <= 9; ++j) gameBoard.getCell(i, j).setIsEmpty(false);
+        }
 
         return flag2;
     }

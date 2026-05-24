@@ -27,10 +27,12 @@ public class GameFrame extends JFrame{
         this.isHardMode = isHardMode;
         //int size = 3;
         //Cell[][] board = new Cell[size + 2][size + 2];
-        Cell[][] board = new Cell[12][12];
+        //Cell[][] board = new Cell[12][12];
+        BoardPanel boardPanel;
 
         //mine:
         if (isHardMode) {
+            Cell[][] board = new Cell[12][12];
             //placing the empty boxes:
             /*for (int i = 0; i < size + 2; i++) {
                 for (int j = 0; j < size + 2; j++) {
@@ -47,40 +49,41 @@ public class GameFrame extends JFrame{
                     for (int j = 1; j <= 10/*size*/; j++) {
                         //board[i][j] = new Cell(new Position(i, j), false, 1);
                         //mine:
-                        board[i][j] = new Cell(new Position(i, j), false, random.nextInt(1, 12));
+                        board[i][j] = new Cell(new Position(i, j), false, random.nextInt(1, 13));
                     }
                 }
                 //my little experiment:
                 //board[0][4] = new Cell(new Position(0, 4), false, 1);
-            } while (!Utils.isSolvable(new GameBoard(12, 12, board)));
+            } while (!Utils.isSolvable(new GameBoard(12, 12, board), true));//the code resetting Cell.isEmpty is different
+            boardPanel = new BoardPanel(new GameBoard(12, 12, board), 0, 100, 1000, 800);
         }
         else{
+            Cell[][] board = new Cell[11][11];
             //placing the empty boxes:
-            /*for (int i = 0; i < size + 2; i++) {
-                for (int j = 0; j < size + 2; j++) {
-                    if (i == 0 || i == size + 1 || j == 0 || j == size + 1) {
-                        board[i][j] = new Cell(new Position(i, j), true, 0); /// 边框
-                    }
-                }
-            }*/
-            for (int i = 0; i < 12; ++i)
-                for (int j = 0; j < 12; ++j) board[i][j] = new Cell(new Position(i, j), true, 0);
+            for (int i = 0; i < 11; ++i)
+                for (int j = 0; j < 11; ++j) board[i][j] = new Cell(new Position(i, j), true, 0);
             do {
                 //placing the chess:
-                for (int i = 1; i <= 10/*size*/; i++) {
-                    for (int j = 1; j <= 10/*size*/; j++) {
+                for (int i = 1; i <= 4/*size*/; i++) {
+                    for (int j = 1; j <= 4/*size*/; j++) {
                         //board[i][j] = new Cell(new Position(i, j), false, 1);
                         //mine:
-                        board[i][j] = new Cell(new Position(i, j), false, random.nextInt(1, 12));
+                        board[i][j] = new Cell(new Position(i, j), false, random.nextInt(1, 6));
                     }
                 }
-                //my little experiment:
-                //board[0][4] = new Cell(new Position(0, 4), false, 1);
-            } while (!Utils.isSolvable(new GameBoard(12, 12, board)));
+                for (int i = 6; i <= 9/*size*/; i++) {
+                    for (int j = 6; j <= 9/*size*/; j++) {
+                        //board[i][j] = new Cell(new Position(i, j), false, 1);
+                        //mine:
+                        board[i][j] = new Cell(new Position(i, j), false, random.nextInt(1, 5));
+                    }
+                }
+            } while (!Utils.isSolvable(new GameBoard(11, 11, board), false));//the code resetting Cell.isEmpty is different
+            boardPanel = new BoardPanel(new GameBoard(11, 11, board), 0, 100, 1000, 800);
         }
 
         //BoardPanel boardPanel = new BoardPanel(new GameBoard(5, 5, board), 0, 100, 800, 800);
-        BoardPanel boardPanel = new BoardPanel(new GameBoard(12, 12, board), 0, 100, 1000, 800);
+        //BoardPanel boardPanel = new BoardPanel(new GameBoard(12, 12, board), 0, 100, 1000, 800);
         this.title = title;
         this.width = width;
         this.height = height;
