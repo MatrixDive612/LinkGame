@@ -130,10 +130,9 @@ public class Main {
                 // 调用UserManager进行登录验证
                 UserManager userManager = UserManager.getInstance();
                 if (userManager.login(username, password)) {
-                    // 登录成功，创建游戏窗口并关闭登录窗口
-                    GameFrame frame = new GameFrame("连连看", 1000, 1000, true);
-                    frame.repaint();
+                    // 登录成功，关闭登录窗口，显示难度选择窗口
                     loginFrame.dispose();
+                    showDifficultySelection();
                 } else {
                     // 登录失败，显示错误提示
                     JOptionPane.showMessageDialog(loginFrame, "用户名或密码错误", "登录失败", JOptionPane.ERROR_MESSAGE);
@@ -213,23 +212,69 @@ public class Main {
                         JOptionPane.WARNING_MESSAGE
                 );
 
-                // 如果用户点击"是"，则进入游戏
+                // 如果用户点击"是"，则进入难度选择
                 if (confirm == JOptionPane.YES_OPTION) {
                     // 设置游客身份
                     UserManager userManager = UserManager.getInstance();
                     userManager.loginAsGuest();
-                    // 直接进入游戏，不保存进度
-                    GameFrame frame = new GameFrame("连连看", 1000, 1000, true);
-                    frame.repaint();
+                    // 关闭登录窗口，显示难度选择窗口
                     loginFrame.dispose();
+                    showDifficultySelection();
                 }
                 // 如果点击"否"，则不做任何操作，返回登录界面
             });
             loginFrame.add(guestButton);
 
-
             // 显示登录窗口
             loginFrame.setVisible(true);
         });
+    }
+
+    // 显示难度选择窗口
+    private static void showDifficultySelection() {
+        JFrame difficultyFrame = new JFrame("连连看 - 选择难度");
+        difficultyFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        difficultyFrame.setSize(800, 600);
+        difficultyFrame.setLocationRelativeTo(null);
+        difficultyFrame.setLayout(null);
+
+        // 添加背景照片
+        JLabel labelPic = new JLabel(new ImageIcon(".\\resource\\2.png"));
+        labelPic.setSize(800, 600);
+        labelPic.setLocation(0, 0);
+        difficultyFrame.add(labelPic);
+
+        // 创建标题标签
+        JLabel titleLabel = new JLabel("选择难度", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 36));
+        titleLabel.setBounds(200, 100, 400, 50);
+        difficultyFrame.add(titleLabel);
+
+        // 创建简单模式按钮
+        JButton easyButton = new JButton("简单模式");
+        easyButton.setFont(new Font("微软雅黑", Font.BOLD, 20));
+        easyButton.setBounds(300, 220, 200, 60);
+        easyButton.addActionListener(e -> {
+            // 点击简单模式，进入游戏
+            GameFrame frame = new GameFrame("连连看", 1000, 1000);
+            frame.repaint();
+            difficultyFrame.dispose();
+        });
+        difficultyFrame.add(easyButton);
+
+        // 创建困难模式按钮
+        JButton hardButton = new JButton("困难模式");
+        hardButton.setFont(new Font("微软雅黑", Font.BOLD, 20));
+        hardButton.setBounds(300, 320, 200, 60);
+        hardButton.addActionListener(e -> {
+            // 点击困难模式，进入游戏
+            GameFrame frame = new GameFrame("连连看", 1000, 1000);
+            frame.repaint();
+            difficultyFrame.dispose();
+        });
+        difficultyFrame.add(hardButton);
+
+        // 显示难度选择窗口
+        difficultyFrame.setVisible(true);
     }
 }
