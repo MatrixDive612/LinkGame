@@ -131,7 +131,7 @@ public class Main {
                 UserManager userManager = UserManager.getInstance();
                 if (userManager.login(username, password)) {
                     // 登录成功，创建游戏窗口并关闭登录窗口
-                    GameFrame frame = new GameFrame("连连看", 1000, 1000);
+                    GameFrame frame = new GameFrame("连连看", 1000, 1000, true);
                     frame.repaint();
                     loginFrame.dispose();
                 } else {
@@ -219,7 +219,7 @@ public class Main {
                     UserManager userManager = UserManager.getInstance();
                     userManager.loginAsGuest();
                     // 直接进入游戏，不保存进度
-                    GameFrame frame = new GameFrame("连连看", 1000, 1000);
+                    GameFrame frame = new GameFrame("连连看", 1000, 1000, true);
                     frame.repaint();
                     loginFrame.dispose();
                 }
