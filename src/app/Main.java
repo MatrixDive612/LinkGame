@@ -77,7 +77,7 @@ public class Main {
             loginFrame.setLocationRelativeTo(null); // 窗口居中显示
             loginFrame.setLayout(null); // 使用绝对布局
 
-            /*这个背景图会挡住字，暂时还不知道怎么改？
+/*//            这个背景图会挡住字，暂时还不知道怎么改？
             //添加背景照片
             JLabel labelPic = new JLabel(new ImageIcon(".\\resource\\0.png"));
             labelPic.setSize(800, 600);
