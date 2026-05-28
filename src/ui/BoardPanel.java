@@ -140,7 +140,7 @@ public class BoardPanel extends JPanel {
             Timer timer = new Timer(300, e -> {
                 Cell c1 = gameBoard.getCell(firstSelected.getRow(), firstSelected.getCol());
                 Cell c2 = gameBoard.getCell(secondSelected.getRow(), secondSelected.getCol());
-                c1.setEmpty(true);
+                c1.setEmpty(true);//Look here!
                 c2.setEmpty(true);
                 c1.setChosen(false);
                 c2.setChosen(false);

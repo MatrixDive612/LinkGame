@@ -119,10 +119,10 @@ public class Utils {
     public static boolean isSolvable(GameBoard gameBoard, boolean isHardMode){
         int rowCnt = gameBoard.getRowCnt();
         int colCnt = gameBoard.getColCnt();
-        /*boolean[][] board = new boolean[rowCnt][colCnt];
+        boolean[][] board = new boolean[rowCnt][colCnt];
         for (int i = 0; i < rowCnt; ++i)
-            for (int j = 0; j < colCnt; ++j) board[i][j] = false;
-        for (int i = 1; i < rowCnt-1; i++)
+            for (int j = 0; j < colCnt; ++j) board[i][j] = gameBoard.getCell(i, j).isEmpty();
+        /*for (int i = 1; i < rowCnt-1; i++)
             for (int j = 1; j < colCnt-1; j++)
                 board[i][j] = true;*/
 
@@ -159,7 +159,7 @@ public class Utils {
             if (!flag2) break;
         }
 
-        if (isHardMode) {
+        /*if (isHardMode) {
             for (int i = 1; i < rowCnt-1; i++)
                 for (int j = 1; j < colCnt-1; j++)
                     gameBoard.getCell(i, j).setIsEmpty(false);
@@ -170,7 +170,10 @@ public class Utils {
 
             for (int i = 6; i <= 9; ++i)
                 for (int j = 6; j <= 9; ++j) gameBoard.getCell(i, j).setIsEmpty(false);
-        }
+        }*/
+
+        for (int i = 0; i < rowCnt; ++i)
+            for (int j = 0; j < colCnt; ++j) gameBoard.getCell(i, j).setIsEmpty(board[i][j]);
 
         return flag2;
     }

@@ -9,7 +9,7 @@ public class StatusPanel extends JPanel {
     Timer timer;
     int seconds;
     int minutes;
-    int hours;
+    //int hours;
     int offSetX;
     int offSetY;
     int width;
@@ -24,18 +24,20 @@ public class StatusPanel extends JPanel {
         this.width = width;
         this.height = height;
         statusLabel = new JLabel("ready");
-        timeLabel = new JLabel("00:00:00");
+        //timeLabel = new JLabel("00:00:00");
+        timeLabel = new JLabel("02:00");
         timer = new Timer(1000, e -> {
             seconds++;
             if (seconds == 60) {
                 minutes++;
                 seconds = 0;
-                if (minutes == 60) {
+                /*if (minutes == 60) {
                     minutes = 0;
                     hours++;
-                }
+                }*/
             }
-            timeLabel.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+            //timeLabel.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+            timeLabel.setText(String.format("%02d:%02d", minutes, seconds));
         });
         //timer.start();
         statusLabel.setFont(new Font("Arial", Font.BOLD, 50));
