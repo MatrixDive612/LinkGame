@@ -21,16 +21,22 @@ public class GameFrame extends JFrame{
     BoardPanel boardPanel;
     Random random = new Random();
     boolean isHardMode; // 是否为困难模式
+    String theme; // 当前主题（fruit/number/animal）
 
     public GameFrame(String title, int width, int height, boolean isHardMode) {
-        this(title, width, height, isHardMode, null);
+        this(title, width, height, isHardMode, null, "fruit");
+    }
+    
+    public GameFrame(String title, int width, int height, boolean isHardMode, String theme) {
+        this(title, width, height, isHardMode, null, theme);
     }
     
     // 从存档创建游戏窗口的构造函数
-    private GameFrame(String title, int width, int height, boolean isHardMode, GameData saveData) {
+    private GameFrame(String title, int width, int height, boolean isHardMode, GameData saveData, String theme) {
         super(title);
         this.setResizable(true);
         this.isHardMode = isHardMode;
+        this.theme = theme != null ? theme : "fruit"; // 默认水果主题
         
         this.title = title;
         this.width = width;
@@ -206,7 +212,7 @@ public class GameFrame extends JFrame{
         int rows = boardState.length;
         int cols = boardState[0].length;
         
-        BoardPanel panel = new BoardPanel(new GameBoard(rows, cols, new Cell[rows][cols]), 0, 100, width, height - 200, isHardMode);
+        BoardPanel panel = new BoardPanel(new GameBoard(rows, cols, new Cell[rows][cols]), 0, 100, width, height - 200, isHardMode, theme);
         panel.loadBoardFromState(boardState);
         
         return panel;
@@ -215,7 +221,7 @@ public class GameFrame extends JFrame{
     // 从存档创建游戏窗口的静态工厂方法
     public static GameFrame createFromSave(GameData saveData) {
         boolean isHardMode = "HARD".equals(saveData.getDifficulty());
-        return new GameFrame("连连看", 1000, 1000, isHardMode, saveData);
+        return new GameFrame("连连看", 1000, 1000, isHardMode, saveData, "fruit");
     }
     
     // 创建棋盘面板
@@ -237,10 +243,8 @@ public class GameFrame extends JFrame{
                 }
             } while (!Utils.isSolvable(new GameBoard(12, 12, board), true));
             
-            boardPanel = new BoardPanel(new GameBoard(12, 12, board), 0, 100, width, height - 200, true);
-        }
-
-        else {
+            boardPanel = new BoardPanel(new GameBoard(12, 12, board), 0, 100, width, height - 200, true, theme);
+        } else {
             // 简单模式：11x11棋盘
             board = new Cell[11][11];
             for (int i = 0; i < 11; ++i)
@@ -260,7 +264,7 @@ public class GameFrame extends JFrame{
                 }
             } while (!Utils.isSolvable(new GameBoard(11, 11, board), false));
             
-            boardPanel = new BoardPanel(new GameBoard(11, 11, board), 0, 100, width, height - 200, false);
+            boardPanel = new BoardPanel(new GameBoard(11, 11, board), 0, 100, width, height - 200, false, theme);
         }
         
         return boardPanel;

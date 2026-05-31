@@ -15,14 +15,20 @@ public class ControlPanel extends JPanel {
     JButton saveButton; // 保存按钮
     JButton loadButton; // 读取按钮
     JButton leaderboardButton; // 排行榜按钮
+    JButton themeButton; // 切换皮肤按钮
     int offSetX;
     int offSetY;
     int width;
     int height;
     UserManager userManager; // 用户管理器
     boolean isHardMode; // 难度模式
+    String currentTheme; // 当前主题
     
     public ControlPanel(StatusPanel statusPanel, BoardPanel boardPanel, int offSetX, int offSetY, int width, int height, boolean isHardMode) {
+        this(statusPanel, boardPanel, offSetX, offSetY, width, height, isHardMode, "fruit");
+    }
+    
+    public ControlPanel(StatusPanel statusPanel, BoardPanel boardPanel, int offSetX, int offSetY, int width, int height, boolean isHardMode, String theme) {
         this.setLayout(null);
         this.setBounds(offSetX, offSetY, width, height);
         this.offSetX = offSetX;
@@ -32,43 +38,51 @@ public class ControlPanel extends JPanel {
         this.statusPanel = statusPanel;
         this.boardPanel = boardPanel;
         this.isHardMode = isHardMode;
+        this.currentTheme = theme != null ? theme : "fruit";
         this.userManager = UserManager.getInstance();
         
-        // 创建按钮（4个按钮）
-        int btnWidth = 120;
+        // 创建按钮（5个按钮）
+        int btnWidth = 100;
         int btnHeight = 45;
-        int spacing = 20;
-        int totalWidth = btnWidth * 4 + spacing * 3;
+        int spacing = 15;
+        int totalWidth = btnWidth * 5 + spacing * 4;
         int startX = (width - totalWidth) / 2;
         int startY = (height - btnHeight) / 2 - 10;
         
         // 重新开始按钮
         restartButton = new JButton("重新开始");
-        restartButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
+        restartButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
         restartButton.setBounds(startX, startY, btnWidth, btnHeight);
         restartButton.setFocusPainted(false);
         this.add(restartButton);
         
         // 保存按钮
         saveButton = new JButton("保存游戏");
-        saveButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
+        saveButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
         saveButton.setBounds(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
         saveButton.setFocusPainted(false);
         this.add(saveButton);
         
         // 读取按钮
         loadButton = new JButton("读取存档");
-        loadButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
+        loadButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
         loadButton.setBounds(startX + (btnWidth + spacing) * 2, startY, btnWidth, btnHeight);
         loadButton.setFocusPainted(false);
         this.add(loadButton);
         
         // 排行榜按钮
         leaderboardButton = new JButton("排行榜");
-        leaderboardButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
+        leaderboardButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
         leaderboardButton.setBounds(startX + (btnWidth + spacing) * 3, startY, btnWidth, btnHeight);
         leaderboardButton.setFocusPainted(false);
         this.add(leaderboardButton);
+        
+        // 切换皮肤按钮
+        themeButton = new JButton("切换皮肤");
+        themeButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
+        themeButton.setBounds(startX + (btnWidth + spacing) * 4, startY, btnWidth, btnHeight);
+        themeButton.setFocusPainted(false);
+        this.add(themeButton);
         
         // 更新按钮状态（游客不可用保存/读取）
         updateButtonStates();
@@ -91,6 +105,11 @@ public class ControlPanel extends JPanel {
         // 排行榜按钮事件
         this.leaderboardButton.addActionListener(e -> {
             handleLeaderboard();
+        });
+        
+        // 切换皮肤按钮事件
+        this.themeButton.addActionListener(e -> {
+            handleThemeSwitch();
         });
     }
     
@@ -168,7 +187,149 @@ public class ControlPanel extends JPanel {
     
     // 处理排行榜
     private void handleLeaderboard() {
-        new LeaderboardFrame();
+        // 获取所有用户
+        java.util.List<app.User> users = userManager.getAllUsers();
+        
+        // 按最高分数降序排序
+        java.util.Collections.sort(users, new java.util.Comparator<app.User>() {
+            @Override
+            public int compare(app.User u1, app.User u2) {
+                return Integer.compare(u2.getHighestScore(), u1.getHighestScore());
+            }
+        });
+        
+        // 构建排行榜文本
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("%-6s %-15s %-10s %-10s %-10s %-10s\n", 
+            "排名", "用户名", "最高分", "游戏次数", "获胜次数", "胜率"));
+        sb.append("=".repeat(70)).append("\n");
+        
+        int rank = 1;
+        for (app.User user : users) {
+            String username = user.getUsername();
+            int highestScore = user.getHighestScore();
+            int totalGames = user.getTotalGames();
+            int wins = user.getWins();
+            double winRate = totalGames > 0 ? (double) wins / totalGames * 100 : 0;
+            
+            sb.append(String.format("%-6d %-15s %-10d %-10d %-10d %-9.1f%%\n", 
+                rank++, username, highestScore, totalGames, wins, winRate));
+        }
+        
+        if (users.isEmpty()) {
+            sb.append("\n暂无玩家数据");
+        }
+        
+        // 显示排行榜对话框
+        JTextArea textArea = new JTextArea(sb.toString());
+        textArea.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        textArea.setEditable(false);
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(600, 400));
+        
+        JOptionPane.showMessageDialog(this, 
+            scrollPane, 
+            "🏆 游戏排行榜 🏆", 
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    // 获取主题显示名称
+    private String getThemeDisplayName() {
+        switch (currentTheme) {
+            case "fruit":
+                return "🍎水果";
+            case "letter":
+                return "🔤字母";
+            case "animal":
+                return "🐱动物";
+            default:
+                return "🍎水果";
+        }
+    }
+    
+    // 处理切换皮肤
+    private void handleThemeSwitch() {
+        // 检查游戏是否在进行中
+        if ("运行中".equals(statusPanel.getStatus())) {
+            int confirm = JOptionPane.showConfirmDialog(this,
+                "切换皮肤将重新开始游戏，当前进度将丢失。\n是否继续？",
+                "切换皮肤",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+            
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+        
+        // 显示主题选择对话框
+        String[] themes = {"🍎 水果主题", "🔤 字母主题", "🐱 动物主题"};
+        String currentThemeName = getThemeDisplayName();
+        
+        // 找到当前主题的索引
+        int defaultIndex = 0;
+        if ("fruit".equals(currentTheme)) {
+            defaultIndex = 0;
+        } else if ("letter".equals(currentTheme)) {
+            defaultIndex = 1;
+        } else if ("animal".equals(currentTheme)) {
+            defaultIndex = 2;
+        }
+        
+        String selected = (String) JOptionPane.showInputDialog(
+            this,
+            "请选择游戏主题：",
+            "切换皮肤",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            themes,
+            themes[defaultIndex]
+        );
+        
+        // 用户取消了选择
+        if (selected == null) {
+            return;
+        }
+        
+        // 根据选择设置主题
+        String newTheme = "fruit";
+        if (selected.equals(themes[0])) {
+            newTheme = "fruit";
+        } else if (selected.equals(themes[1])) {
+            newTheme = "letter";
+        } else if (selected.equals(themes[2])) {
+            newTheme = "animal";
+        }
+        
+        // 如果选择的主题和当前相同，不需要切换
+        if (newTheme.equals(currentTheme)) {
+            JOptionPane.showMessageDialog(this,
+                "当前已经是" + getThemeDisplayName() + "了！",
+                "提示",
+                JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // 应用新主题
+        currentTheme = newTheme;
+        
+        // 重新开始游戏以应用新主题
+        if (boardPanel != null) {
+            boardPanel.setTheme(currentTheme);
+            boardPanel.restartGame();
+        }
+        statusPanel.setScore(0);
+        statusPanel.resetTimer();
+        statusPanel.setStatus("运行中");
+        statusPanel.setLastAction("无");
+        statusPanel.startTimer();
+        updateButtonStates();
+        
+        JOptionPane.showMessageDialog(this,
+            "已切换到" + getThemeDisplayName() + "！",
+            "切换成功",
+            JOptionPane.INFORMATION_MESSAGE);
     }
     
     // 处理保存游戏（支持3个存档槽位）

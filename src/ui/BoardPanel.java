@@ -35,6 +35,7 @@ public class BoardPanel extends JPanel {
     ControlPanel controlPanel; // 控制面板引用
     int comboCount = 0; // 连消计数
     long lastEliminateTime = 0; // 上次消除时间
+    String theme; // 当前主题（fruit/number/animal）
     
     // 根据鼠标坐标获取棋盘位置
     public Position getPositionByPoint(int x, int y) {
@@ -72,7 +73,7 @@ public class BoardPanel extends JPanel {
     }
 
     // 构造函数
-    public BoardPanel(GameBoard gameBoard, int offSetX, int offSetY, int width, int height, boolean isHardMode) {
+    public BoardPanel(GameBoard gameBoard, int offSetX, int offSetY, int width, int height, boolean isHardMode, String theme) {
         this.offSetX = offSetX;
         this.offSetY = offSetY;
         this.setBounds(offSetX, offSetY, width, height);
@@ -81,21 +82,15 @@ public class BoardPanel extends JPanel {
         this.width = width;
         this.height = height;
         this.isHardMode = isHardMode;
+        this.theme = theme != null ? theme : "fruit"; // 默认水果主题
         this.setLayout(new GridLayout(this.totalRow, this.totalCol));
         this.gameBoard = gameBoard;
         this.setPreferredSize(new Dimension(this.width, this.height));
         this.cellWidth = this.width / totalCol;
         this.cellHeight = this.height / totalRow;
         
-        // 加载图片资源
-        File dir = new File("resource");
-        File[] files = dir.listFiles();
-        for (File file : files) {
-            if (file.getName().endsWith(".png")) {
-                ImageIcon icon = new ImageIcon(file.getPath());
-                imageList.add(icon.getImage());
-            }
-        }
+        // 加载指定主题的图片资源
+        loadThemeImages();
         
         // 添加鼠标点击事件监听
         this.addMouseListener(new MouseAdapter() {
@@ -104,6 +99,52 @@ public class BoardPanel extends JPanel {
                 handleClick(e.getX(), e.getY());
             }
         });
+    }
+    
+    // 加载主题图片
+    private void loadThemeImages() {
+        imageList.clear();
+        File themeDir = new File("resource/" + theme);
+        
+        if (!themeDir.exists()) {
+            System.err.println("主题文件夹不存在: " + themeDir.getPath());
+            // 如果主题文件夹不存在，尝试加载默认主题
+            themeDir = new File("resource/fruit");
+        }
+        
+        File[] files = themeDir.listFiles();
+        if (files != null) {
+            // 按文件名排序
+            java.util.Arrays.sort(files, (f1, f2) -> {
+                String name1 = f1.getName().replace(".png", "");
+                String name2 = f2.getName().replace(".png", "");
+                try {
+                    return Integer.parseInt(name1) - Integer.parseInt(name2);
+                } catch (NumberFormatException e) {
+                    return f1.getName().compareTo(f2.getName());
+                }
+            });
+            
+            for (File file : files) {
+                if (file.getName().endsWith(".png")) {
+                    ImageIcon icon = new ImageIcon(file.getPath());
+                    imageList.add(icon.getImage());
+                }
+            }
+        }
+        
+        System.out.println("已加载主题: " + theme + ", 图片数量: " + imageList.size());
+    }
+    
+    // 设置主题
+    public void setTheme(String newTheme) {
+        if (this.theme.equals(newTheme)) {
+            return; // 主题相同，无需切换
+        }
+        
+        this.theme = newTheme;
+        loadThemeImages(); // 重新加载图片
+        repaint(); // 重绘界面
     }
     
     // 设置状态面板引用
@@ -140,11 +181,11 @@ public class BoardPanel extends JPanel {
         if (isHardMode) {
             rows = 12;
             cols = 12;
-            iconTypes = 12;
+            iconTypes = 12;  // 困难模式使用1-12共12种图案
         } else {
             rows = 11;
             cols = 11;
-            iconTypes = 6;
+            iconTypes = 5;   // 简单模式使用1-5共5种图案
         }
         
         this.totalRow = rows;
@@ -160,22 +201,22 @@ public class BoardPanel extends JPanel {
         // 生成可解的棋盘
         do {
             if (isHardMode) {
-                // 困难模式：10x10区域
+                // 困难模式：10x10区域，使用1-12的图案
                 for (int i = 1; i <= 10; i++) {
                     for (int j = 1; j <= 10; j++) {
                         gameBoard.setCell(i, j, new Cell(new Position(i, j), false, random.nextInt(1, iconTypes + 1)));
                     }
                 }
             } else {
-                // 简单模式：两个4x4区域
+                // 简单模式：两个4x4区域，使用1-5的图案
                 for (int i = 1; i <= 4; i++) {
                     for (int j = 1; j <= 4; j++) {
-                        gameBoard.setCell(i, j, new Cell(new Position(i, j), false, random.nextInt(1, 6)));
+                        gameBoard.setCell(i, j, new Cell(new Position(i, j), false, random.nextInt(1, iconTypes + 1)));
                     }
                 }
                 for (int i = 6; i <= 9; i++) {
                     for (int j = 6; j <= 9; j++) {
-                        gameBoard.setCell(i, j, new Cell(new Position(i, j), false, random.nextInt(1, 5)));
+                        gameBoard.setCell(i, j, new Cell(new Position(i, j), false, random.nextInt(1, iconTypes + 1)));
                     }
                 }
             }
@@ -187,7 +228,7 @@ public class BoardPanel extends JPanel {
     
     // 计算并更新剩余可消除对数
     private void updateRemainingPairs() {
-        int maxIconType = isHardMode ? 12 : 6;
+        int maxIconType = isHardMode ? 12 : 5;  // 简单模式5种，困难模式12种
         int[] count = new int[maxIconType + 1];
         
         // 统计每种图标的数量
