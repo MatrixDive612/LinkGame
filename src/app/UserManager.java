@@ -47,7 +47,7 @@ public class UserManager {
     }
     
     // 保存用户数据到本地文件
-    private void saveUsers() {
+    public void saveUsers() {
         try {
             File file = new File(USER_DATA_FILE);
             file.getParentFile().mkdirs(); // 创建父目录（如果不存在）

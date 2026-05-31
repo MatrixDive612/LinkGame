@@ -17,6 +17,8 @@ public class ControlPanel extends JPanel {
     JButton leaderboardButton; // 排行榜按钮
     JButton themeButton; // 切换皮肤按钮
     JButton musicButton; // 切换音乐按钮
+    JButton itemShopButton; // 道具兑换按钮
+    JButton itemUseButton; // 使用道具按钮
     int offSetX;
     int offSetY;
     int width;
@@ -25,6 +27,7 @@ public class ControlPanel extends JPanel {
     boolean isHardMode; // 难度模式
     String currentTheme; // 当前主题
     String currentMusic; // 当前音乐
+    ItemManager itemManager; // 道具管理器
     
     public ControlPanel(StatusPanel statusPanel, BoardPanel boardPanel, int offSetX, int offSetY, int width, int height, boolean isHardMode) {
         this(statusPanel, boardPanel, offSetX, offSetY, width, height, isHardMode, "fruit", "calm");
@@ -47,12 +50,14 @@ public class ControlPanel extends JPanel {
         this.currentTheme = theme != null ? theme : "fruit";
         this.currentMusic = music != null ? music : "calm";
         this.userManager = UserManager.getInstance();
+        this.itemManager = ItemManager.getInstance();
+        this.itemManager.setPanels(statusPanel, boardPanel, this);
         
-        // 创建按钮（6个按钮）
+        // 创建按钮（8个按钮）
         int btnWidth = 90;
         int btnHeight = 45;
         int spacing = 12;
-        int totalWidth = btnWidth * 6 + spacing * 5;
+        int totalWidth = btnWidth * 8 + spacing * 7;
         int startX = (width - totalWidth) / 2;
         int startY = (height - btnHeight) / 2 - 10;
         
@@ -98,6 +103,20 @@ public class ControlPanel extends JPanel {
         musicButton.setFocusPainted(false);
         this.add(musicButton);
         
+        // 道具兑换按钮
+        itemShopButton = new JButton("道具兑换");
+        itemShopButton.setFont(new Font("微软雅黑", Font.BOLD, 13));
+        itemShopButton.setBounds(startX + (btnWidth + spacing) * 6, startY, btnWidth, btnHeight);
+        itemShopButton.setFocusPainted(false);
+        this.add(itemShopButton);
+        
+        // 使用道具按钮
+        itemUseButton = new JButton("使用道具");
+        itemUseButton.setFont(new Font("微软雅黑", Font.BOLD, 13));
+        itemUseButton.setBounds(startX + (btnWidth + spacing) * 7, startY, btnWidth, btnHeight);
+        itemUseButton.setFocusPainted(false);
+        this.add(itemUseButton);
+        
         // 更新按钮状态（游客不可用保存/读取）
         updateButtonStates();
         
@@ -130,6 +149,35 @@ public class ControlPanel extends JPanel {
         this.musicButton.addActionListener(e -> {
             handleMusicSwitch();
         });
+        
+        // 道具兑换按钮事件
+        this.itemShopButton.addActionListener(e -> {
+            handleItemShop();
+        });
+        
+        // 使用道具按钮事件
+        this.itemUseButton.addActionListener(e -> {
+            handleItemUse();
+        });
+    }
+    
+    // 处理道具兑换
+    private void handleItemShop() {
+        if (!userManager.isRegisteredUser()) {
+            JOptionPane.showMessageDialog(this, 
+                "只有注册用户才能使用积分兑换道具！", 
+                "提示", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int currentPoints = userManager.getCurrentUser().getPoints();
+        itemManager.showItemShop(currentPoints);
+    }
+    
+    // 处理使用道具
+    private void handleItemUse() {
+        itemManager.showItemUsage();
     }
     
     // 更新按钮状态

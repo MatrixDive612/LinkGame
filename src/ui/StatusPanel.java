@@ -159,6 +159,10 @@ public class StatusPanel extends JPanel {
                 controlPanel.notifyGameEnded();
             }
             
+            // 重置道具管理器状态
+            ItemManager itemManager = ItemManager.getInstance();
+            itemManager.reset();
+            
             // 创建自定义失败弹窗
             JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "游戏失败", true);
             dialog.setLayout(new BorderLayout());
@@ -233,6 +237,11 @@ public class StatusPanel extends JPanel {
     
     // 添加分数
     public void addScore(int points) {
+        // 检查双倍分数是否激活
+        ItemManager itemManager = ItemManager.getInstance();
+        if (itemManager.isDoubleScoreActive()) {
+            points *= 2;
+        }
         this.score += points;
         scoreLabel.setText("分数: " + this.score);
         repaint();

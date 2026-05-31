@@ -37,6 +37,71 @@ public class BoardPanel extends JPanel {
     long lastEliminateTime = 0; // 上次消除时间
     String theme; // 当前主题（fruit/number/animal）
     
+    // 获取第一个选中的位置
+    public Position getFirstSelected() {
+        return firstSelected;
+    }
+    
+    // 获取游戏棋盘
+    public GameBoard getGameBoard() {
+        return gameBoard;
+    }
+    
+    // 根据图标索引消除所有匹配的图案
+    public int eliminateAllByIcon(int iconIndex) {
+        List<Position> positions = new ArrayList<>();
+        
+        // 找到所有匹配图标的位置
+        for (int i = 1; i < totalRow - 1; i++) {
+            for (int j = 1; j < totalCol - 1; j++) {
+                Cell cell = gameBoard.getCell(i, j);
+                if (!cell.isEmpty() && cell.getIconIndex() == iconIndex) {
+                    positions.add(new Position(i, j));
+                }
+            }
+        }
+        
+        int eliminatedCount = positions.size();
+        
+        // 消除所有匹配的图案
+        for (Position pos : positions) {
+            Cell cell = gameBoard.getCell(pos.getRow(), pos.getCol());
+            cell.setEmpty(true);
+            cell.setChosen(false);
+        }
+        
+        firstSelected = null;
+        secondSelected = null;
+        lineVisible = false;
+        lineList.clear();
+        
+        updateRemainingPairs();
+        repaint();
+        
+        return eliminatedCount;
+    }
+    
+    // 清空所有单元格
+    public void clearAllCells() {
+        for (int i = 1; i < totalRow - 1; i++) {
+            for (int j = 1; j < totalCol - 1; j++) {
+                Cell cell = gameBoard.getCell(i, j);
+                if (!cell.isEmpty()) {
+                    cell.setEmpty(true);
+                    cell.setChosen(false);
+                }
+            }
+        }
+        
+        firstSelected = null;
+        secondSelected = null;
+        lineVisible = false;
+        lineList.clear();
+        
+        updateRemainingPairs();
+        repaint();
+    }
+    
     // 根据鼠标坐标获取棋盘位置
     public Position getPositionByPoint(int x, int y) {
         int col = x / cellWidth;
@@ -445,20 +510,33 @@ public class BoardPanel extends JPanel {
                         statusPanel.setStatus("胜利！");
                         statusPanel.stopTimer();
                         
-                        // 更新用户统计
+                        // 更新用户统计（这会将本局得分累加到积分）
                         app.UserManager userManager = app.UserManager.getInstance();
                         if (userManager.isRegisteredUser()) {
+                            int finalScore = statusPanel.getScore();
                             userManager.updateCurrentUserStats(
-                                statusPanel.getScore(),
+                                finalScore,
                                 true,
                                 statusPanel.getElapsedTime()
                             );
+                            
+                            // 显示积分增加提示
+                            javax.swing.SwingUtilities.invokeLater(() -> {
+                                JOptionPane.showMessageDialog(BoardPanel.this, 
+                                    "本局得分: " + finalScore + "\n积分已增加: +" + finalScore, 
+                                    "积分增加", 
+                                    JOptionPane.INFORMATION_MESSAGE);
+                            });
                         }
                         
                         // 通知控制面板游戏结束，启用读取按钮
                         if (controlPanel != null) {
                             controlPanel.notifyGameEnded();
                         }
+                        
+                        // 重置道具管理器状态
+                        ItemManager itemManager = ItemManager.getInstance();
+                        itemManager.reset();
                         
                         // 创建自定义胜利弹窗
                         JDialog victoryDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "游戏胜利", true);
