@@ -32,11 +32,16 @@ public class MusicManager {
         stopMusic();
         
         try {
-            // 加载音乐文件
-            File musicFile = new File("resource/music/" + musicName + ".mp3");
+            // 加载音乐文件（尝试多种格式）
+            File musicFile = new File("resource/music/" + musicName + ".wav");
+            
+            // 如果WAV不存在，尝试MP3
+            if (!musicFile.exists()) {
+                musicFile = new File("resource/music/" + musicName + ".mp3");
+            }
             
             if (!musicFile.exists()) {
-                System.err.println("音乐文件不存在: " + musicFile.getPath());
+                System.err.println("音乐文件不存在: resource/music/" + musicName);
                 return;
             }
             
@@ -46,8 +51,23 @@ public class MusicManager {
             // 获取音频格式
             AudioFormat format = audioStream.getFormat();
             
+            // 如果不是PCM格式，转换为PCM
+            if (format.getEncoding() != AudioFormat.Encoding.PCM_SIGNED && 
+                format.getEncoding() != AudioFormat.Encoding.PCM_UNSIGNED) {
+                AudioFormat decodedFormat = new AudioFormat(
+                    AudioFormat.Encoding.PCM_SIGNED,
+                    format.getSampleRate(),
+                    16,
+                    format.getChannels(),
+                    format.getChannels() * 2,
+                    format.getSampleRate(),
+                    false
+                );
+                audioStream = AudioSystem.getAudioInputStream(decodedFormat, audioStream);
+            }
+            
             // 创建数据行信息
-            DataLine.Info info = new DataLine.Info(Clip.class, format);
+            DataLine.Info info = new DataLine.Info(Clip.class, audioStream.getFormat());
             
             // 创建Clip对象
             currentClip = (Clip) AudioSystem.getLine(info);
@@ -62,7 +82,6 @@ public class MusicManager {
             currentClip.start();
             
             currentMusic = musicName;
-            System.out.println("开始播放音乐: " + musicName);
             
         } catch (UnsupportedAudioFileException e) {
             System.err.println("不支持的音频格式: " + e.getMessage());
@@ -80,7 +99,6 @@ public class MusicManager {
             currentClip.close();
             currentClip = null;
             currentMusic = null;
-            System.out.println("音乐已停止");
         }
     }
     
@@ -88,7 +106,6 @@ public class MusicManager {
     public void pauseMusic() {
         if (currentClip != null && currentClip.isRunning()) {
             currentClip.stop();
-            System.out.println("音乐已暂停");
         }
     }
     
@@ -96,7 +113,6 @@ public class MusicManager {
     public void resumeMusic() {
         if (currentClip != null && !currentClip.isRunning()) {
             currentClip.start();
-            System.out.println("音乐已恢复");
         }
     }
     

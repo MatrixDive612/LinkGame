@@ -92,7 +92,7 @@ public class ControlPanel extends JPanel {
         this.add(themeButton);
         
         // 切换音乐按钮
-        musicButton = new JButton(getMusicDisplayName());
+        musicButton = new JButton("切换音乐");
         musicButton.setFont(new Font("微软雅黑", Font.BOLD, 13));
         musicButton.setBounds(startX + (btnWidth + spacing) * 5, startY, btnWidth, btnHeight);
         musicButton.setFocusPainted(false);
