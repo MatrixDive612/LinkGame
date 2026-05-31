@@ -1,6 +1,8 @@
 package app;
 
+import app.SaveManager;
 import app.UserManager;
+import app.GameData;
 import ui.GameFrame;
 
 import javax.swing.*;
@@ -130,7 +132,35 @@ public class Main {
                 // 调用UserManager进行登录验证
                 UserManager userManager = UserManager.getInstance();
                 if (userManager.login(username, password)) {
-                    // 登录成功，关闭登录窗口，显示难度选择窗口
+                    // 登录成功，检查是否有存档
+                    String currentUser = userManager.getCurrentUser().getUsername();
+                    boolean hasSave = false;
+                    for (int i = 1; i <= 3; i++) {
+                        if (SaveManager.hasSave(currentUser, i)) {
+                            hasSave = true;
+                            break;
+                        }
+                    }
+                    
+                    if (hasSave) {
+                        // 有存档，询问是否恢复
+                        int choice = JOptionPane.showConfirmDialog(
+                            loginFrame,
+                            "检测到您有未完成的游戏进度，是否恢复？",
+                            "恢复游戏",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE
+                        );
+                        
+                        if (choice == JOptionPane.YES_OPTION) {
+                            // 用户选择恢复，直接加载最新存档进入游戏
+                            loginFrame.dispose();
+                            restoreLatestSave(currentUser);
+                            return;
+                        }
+                    }
+                    
+                    // 没有存档或用户选择不恢复，显示难度选择窗口
                     loginFrame.dispose();
                     showDifficultySelection();
                 } else {
@@ -238,11 +268,11 @@ public class Main {
         difficultyFrame.setLocationRelativeTo(null);
         difficultyFrame.setLayout(null);
 
-        // 添加背景照片
+        /*// 添加背景照片
         JLabel labelPic = new JLabel(new ImageIcon(".\\resource\\2.png"));
         labelPic.setSize(800, 600);
         labelPic.setLocation(0, 0);
-        difficultyFrame.add(labelPic);
+        difficultyFrame.add(labelPic);*/
 
         // 创建标题标签
         JLabel titleLabel = new JLabel("选择难度", SwingConstants.CENTER);
@@ -276,5 +306,38 @@ public class Main {
 
         // 显示难度选择窗口
         difficultyFrame.setVisible(true);
+    }
+    
+    // 恢复最新的存档
+    private static void restoreLatestSave(String username) {
+        // 查找最新的存档
+        GameData latestSave = null;
+        int latestSlot = 1;
+        long latestTime = 0;
+        
+        for (int i = 1; i <= 3; i++) {
+            if (SaveManager.hasSave(username, i)) {
+                GameData data = SaveManager.loadGame(username, i);
+                if (data != null && data.getTimestamp() > latestTime) {
+                    latestTime = data.getTimestamp();
+                    latestSave = data;
+                    latestSlot = i;
+                }
+            }
+        }
+        
+        if (latestSave != null) {
+            // 使用存档数据创建游戏窗口
+            GameFrame frame = GameFrame.createFromSave(latestSave);
+            frame.repaint();
+            
+            JOptionPane.showMessageDialog(frame, 
+                "已恢复存档" + latestSlot + "的游戏进度", 
+                "恢复成功", 
+                JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            // 没有有效存档，回到难度选择
+            showDifficultySelection();
+        }
     }
 }

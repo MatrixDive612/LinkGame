@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class StatusPanel extends JPanel {
-    JLabel statusLabel; // 状态标签（准备/运行中/胜利/失败）
+    JLabel statusLabel; // 状态标签（准备/运行中/胜利）
     JLabel timeLabel; // 时间标签
     JLabel scoreLabel; // 分数标签
     JLabel pairsLabel; // 剩余对数标签
@@ -23,7 +23,8 @@ public class StatusPanel extends JPanel {
     int currentLevel; // 当前关卡
     int totalTime; // 总时间（秒）
     private boolean timerStarted = false; // 避免重复启动计时器
-
+    ControlPanel controlPanel; // 控制面板引用
+    
     public StatusPanel(int offSetX, int offSetY, int width, int height) {
         this.setLayout(null);
         this.setBounds(offSetX, offSetY, width, height);
@@ -89,6 +90,16 @@ public class StatusPanel extends JPanel {
     public void setStatus(String text) {
         statusLabel.setText(text);
         repaint();
+        
+        // 如果状态变为结束状态，通知控制面板
+        if (controlPanel != null && ("胜利！".equals(text) || "失败！".equals(text) || "死局！".equals(text))) {
+            controlPanel.notifyGameEnded();
+        }
+    }
+    
+    // 设置控制面板引用
+    public void setControlPanel(ControlPanel controlPanel) {
+        this.controlPanel = controlPanel;
     }
     
     // 获取状态文本
@@ -136,6 +147,24 @@ public class StatusPanel extends JPanel {
         int remSec = remaining % 60;
         timeLabel.setText(String.format("剩余: %02d:%02d", remMin, remSec));
         repaint();
+        
+        // 检查倒计时是否结束
+        if (remaining == 0 && "运行中".equals(statusLabel.getText())) {
+            stopTimer();
+            statusLabel.setText("失败！");
+            repaint();
+            
+            // 通知控制面板游戏结束
+            if (controlPanel != null) {
+                controlPanel.notifyGameEnded();
+            }
+            
+            // 显示失败弹窗
+            JOptionPane.showMessageDialog(this, 
+                "时间到！游戏失败！\n得分: " + score, 
+                "游戏失败", 
+                JOptionPane.WARNING_MESSAGE);
+        }
     }
     
     // 获取已用时间（秒）
