@@ -261,7 +261,7 @@ public class Main {
     }
 
     // 显示难度选择窗口
-    private static void showDifficultySelection() {
+    public static void showDifficultySelection() {
         JFrame difficultyFrame = new JFrame("连连看 - 选择难度");
         difficultyFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         difficultyFrame.setSize(800, 600);

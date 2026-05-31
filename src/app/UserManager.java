@@ -122,4 +122,15 @@ public class UserManager {
             saveUsers(); // 更新后立即保存到文件
         }
     }
+    
+    // 获取所有注册用户（用于排行榜）
+    public java.util.List<User> getAllUsers() {
+        java.util.List<User> userList = new java.util.ArrayList<>();
+        for (User user : users.values()) {
+            if (!user.isGuest()) {
+                userList.add(user);
+            }
+        }
+        return userList;
+    }
 }
