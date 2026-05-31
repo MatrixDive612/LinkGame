@@ -159,11 +159,64 @@ public class StatusPanel extends JPanel {
                 controlPanel.notifyGameEnded();
             }
             
-            // 显示失败弹窗
-            JOptionPane.showMessageDialog(this, 
-                "时间到！游戏失败！\n得分: " + score, 
-                "游戏失败", 
-                JOptionPane.WARNING_MESSAGE);
+            // 创建自定义失败弹窗
+            JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "游戏失败", true);
+            dialog.setLayout(new BorderLayout());
+            dialog.setSize(500, 300);
+            dialog.setLocationRelativeTo(this); // 居中显示
+            
+            // 创建主面板
+            JPanel mainPanel = new JPanel();
+            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+            mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+            
+            // 标题
+            JLabel titleLabel = new JLabel("时间到！游戏失败！", SwingConstants.CENTER);
+            titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
+            titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            // 得分
+            JLabel scoreLabel = new JLabel("得分: " + score, SwingConstants.CENTER);
+            scoreLabel.setFont(new Font("微软雅黑", Font.PLAIN, 18));
+            scoreLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            scoreLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 30, 0));
+            
+            // 按钮面板
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
+            
+            JButton restartButton = new JButton("重新开始");
+            restartButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
+            restartButton.setPreferredSize(new Dimension(150, 45));
+            restartButton.addActionListener(e -> {
+                dialog.dispose();
+                if (controlPanel != null) {
+                    controlPanel.handleRestartFromFailure();
+                }
+            });
+            
+            JButton menuButton = new JButton("返回菜单");
+            menuButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
+            menuButton.setPreferredSize(new Dimension(150, 45));
+            menuButton.addActionListener(e -> {
+                dialog.dispose();
+                java.awt.Window window = SwingUtilities.getWindowAncestor(StatusPanel.this);
+                if (window != null) {
+                    window.dispose();
+                    app.Main.showDifficultySelection();
+                }
+            });
+            
+            buttonPanel.add(restartButton);
+            buttonPanel.add(menuButton);
+            
+            // 组装面板
+            mainPanel.add(titleLabel);
+            mainPanel.add(scoreLabel);
+            mainPanel.add(buttonPanel);
+            
+            dialog.add(mainPanel, BorderLayout.CENTER);
+            dialog.setVisible(true);
         }
     }
     

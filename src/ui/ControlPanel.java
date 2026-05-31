@@ -14,6 +14,7 @@ public class ControlPanel extends JPanel {
     JButton restartButton; // 重新开始按钮
     JButton saveButton; // 保存按钮
     JButton loadButton; // 读取按钮
+    JButton leaderboardButton; // 排行榜按钮
     int offSetX;
     int offSetY;
     int width;
@@ -33,11 +34,11 @@ public class ControlPanel extends JPanel {
         this.isHardMode = isHardMode;
         this.userManager = UserManager.getInstance();
         
-        // 创建按钮
+        // 创建按钮（4个按钮）
         int btnWidth = 120;
         int btnHeight = 45;
-        int spacing = 30;
-        int totalWidth = btnWidth * 3 + spacing * 2;
+        int spacing = 20;
+        int totalWidth = btnWidth * 4 + spacing * 3;
         int startX = (width - totalWidth) / 2;
         int startY = (height - btnHeight) / 2 - 10;
         
@@ -62,6 +63,13 @@ public class ControlPanel extends JPanel {
         loadButton.setFocusPainted(false);
         this.add(loadButton);
         
+        // 排行榜按钮
+        leaderboardButton = new JButton("排行榜");
+        leaderboardButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
+        leaderboardButton.setBounds(startX + (btnWidth + spacing) * 3, startY, btnWidth, btnHeight);
+        leaderboardButton.setFocusPainted(false);
+        this.add(leaderboardButton);
+        
         // 更新按钮状态（游客不可用保存/读取）
         updateButtonStates();
         
@@ -78,6 +86,11 @@ public class ControlPanel extends JPanel {
         // 读取按钮事件
         this.loadButton.addActionListener(e -> {
             handleLoad();
+        });
+        
+        // 排行榜按钮事件
+        this.leaderboardButton.addActionListener(e -> {
+            handleLeaderboard();
         });
     }
     
@@ -131,16 +144,31 @@ public class ControlPanel extends JPanel {
             JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
-            if (boardPanel != null) {
-                boardPanel.restartGame(); // 重置棋盘
-            }
-            statusPanel.setScore(0); // 重置分数
-            statusPanel.resetTimer(); // 重置时间
-            statusPanel.setStatus("运行中"); // 重置状态
-            statusPanel.setLastAction("无"); // 重置操作记录
-            statusPanel.startTimer(); // 重新启动计时器
-            updateButtonStates(); // 更新按钮状态
+            doRestart();
         }
+    }
+    
+    // 从失败状态重新开始（公开方法，无需确认）
+    public void handleRestartFromFailure() {
+        doRestart();
+    }
+    
+    // 执行重新开始操作
+    private void doRestart() {
+        if (boardPanel != null) {
+            boardPanel.restartGame(); // 重置棋盘
+        }
+        statusPanel.setScore(0); // 重置分数
+        statusPanel.resetTimer(); // 重置时间
+        statusPanel.setStatus("运行中"); // 重置状态
+        statusPanel.setLastAction("无"); // 重置操作记录
+        statusPanel.startTimer(); // 重新启动计时器
+        updateButtonStates(); // 更新按钮状态
+    }
+    
+    // 处理排行榜
+    private void handleLeaderboard() {
+        new LeaderboardFrame();
     }
     
     // 处理保存游戏（支持3个存档槽位）
