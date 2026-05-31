@@ -380,7 +380,7 @@ public class BoardPanel extends JPanel {
         repaint();
         
         // 检查是否可以连接
-        if (canConnect(firstSelected, secondSelected)) {
+        if (canConnect(firstSelected, secondSelected, lineList)) {
             // 可以连接，执行消除
             animating = true;
             showLine(
@@ -401,7 +401,8 @@ public class BoardPanel extends JPanel {
             int baseScore = 10;
             int comboBonus = (comboCount - 1) * 5; // 每多一个combo额外+5分
             int totalScore = baseScore + comboBonus;
-            
+
+            //每0.3秒刷新一次界面？来让连线消失？还有其他什么消失了？
             Timer timer = new Timer(300, e -> {
                 Cell c1 = gameBoard.getCell(firstSelected.getRow(), firstSelected.getCol());
                 Cell c2 = gameBoard.getCell(secondSelected.getRow(), secondSelected.getCol());
@@ -411,8 +412,8 @@ public class BoardPanel extends JPanel {
                 c2.setEmpty(true);
                 c1.setChosen(false);
                 c2.setChosen(false);
-                lineVisible = false;
-                lineList.clear();
+                lineVisible = false;//连线消失
+                lineList.clear();//连线消失
                 firstSelected = null;
                 secondSelected = null;
                 animating = false;
