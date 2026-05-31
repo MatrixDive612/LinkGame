@@ -180,7 +180,7 @@ public class ControlPanel extends JPanel {
         statusPanel.setScore(0); // 重置分数
         statusPanel.resetTimer(); // 重置时间
         statusPanel.setStatus("运行中"); // 重置状态
-        statusPanel.setLastAction("无"); // 重置操作记录
+        statusPanel.setLastAction("暂无操作"); // 重置操作记录
         statusPanel.startTimer(); // 重新启动计时器
         updateButtonStates(); // 更新按钮状态
     }
@@ -198,12 +198,16 @@ public class ControlPanel extends JPanel {
             }
         });
         
-        // 构建排行榜文本
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%-6s %-15s %-10s %-10s %-10s %-10s\n", 
-            "排名", "用户名", "最高分", "游戏次数", "获胜次数", "胜率"));
-        sb.append("=".repeat(70)).append("\n");
+        // 创建表格模型
+        String[] columns = {"排名", "用户名", "最高分", "游戏次数", "获胜次数", "胜率"};
+        javax.swing.table.DefaultTableModel tableModel = new javax.swing.table.DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // 不可编辑
+            }
+        };
         
+        // 添加数据到表格
         int rank = 1;
         for (app.User user : users) {
             String username = user.getUsername();
@@ -211,27 +215,79 @@ public class ControlPanel extends JPanel {
             int totalGames = user.getTotalGames();
             int wins = user.getWins();
             double winRate = totalGames > 0 ? (double) wins / totalGames * 100 : 0;
+            String winRateStr = String.format("%.1f%%", winRate);
             
-            sb.append(String.format("%-6d %-15s %-10d %-10d %-10d %-9.1f%%\n", 
-                rank++, username, highestScore, totalGames, wins, winRate));
+            tableModel.addRow(new Object[]{
+                rank++,
+                username,
+                highestScore,
+                totalGames,
+                wins,
+                winRateStr
+            });
         }
         
-        if (users.isEmpty()) {
-            sb.append("\n暂无玩家数据");
+        // 创建表格
+        JTable table = new JTable(tableModel);
+        table.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        table.setRowHeight(30);
+        table.getTableHeader().setFont(new Font("微软雅黑", Font.BOLD, 14));
+        table.getTableHeader().setPreferredSize(new Dimension(0, 40));
+        
+        // 设置列宽
+        table.getColumnModel().getColumn(0).setPreferredWidth(60);  // 排名
+        table.getColumnModel().getColumn(1).setPreferredWidth(150); // 用户名
+        table.getColumnModel().getColumn(2).setPreferredWidth(100); // 最高分
+        table.getColumnModel().getColumn(3).setPreferredWidth(80);  // 游戏次数
+        table.getColumnModel().getColumn(4).setPreferredWidth(80);  // 获胜次数
+        table.getColumnModel().getColumn(5).setPreferredWidth(80);  // 胜率
+        
+        // 居中显示单元格内容
+        javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
         
-        // 显示排行榜对话框
-        JTextArea textArea = new JTextArea(sb.toString());
-        textArea.setFont(new Font("微软雅黑", Font.PLAIN, 14));
-        textArea.setEditable(false);
+        // 添加到滚动面板
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setPreferredSize(new Dimension(600, 350));
         
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(600, 400));
+        // 创建自定义对话框，居中显示
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "🏆 游戏排行榜 🏆", true);
+        dialog.setLayout(new BorderLayout());
+        dialog.setSize(650, 500);
         
-        JOptionPane.showMessageDialog(this, 
-            scrollPane, 
-            "🏆 游戏排行榜 🏆", 
-            JOptionPane.INFORMATION_MESSAGE);
+        // 设置对话框在游戏窗口中间
+        Window parentWindow = SwingUtilities.getWindowAncestor(this);
+        if (parentWindow != null) {
+            int x = parentWindow.getX() + (parentWindow.getWidth() - 650) / 2;
+            int y = parentWindow.getY() + (parentWindow.getHeight() - 500) / 2;
+            dialog.setLocation(x, y);
+        } else {
+            dialog.setLocationRelativeTo(null);
+        }
+        
+        // 添加标题
+        JLabel titleLabel = new JLabel("🏆 游戏排行榜 🏆", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 10, 0));
+        dialog.add(titleLabel, BorderLayout.NORTH);
+        
+        // 添加表格
+        dialog.add(scrollPane, BorderLayout.CENTER);
+        
+        // 添加关闭按钮
+        JPanel buttonPanel = new JPanel();
+        JButton closeButton = new JButton("关闭");
+        closeButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
+        closeButton.setPreferredSize(new Dimension(100, 35));
+        closeButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(closeButton);
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setVisible(true);
     }
     
     // 获取主题显示名称
@@ -322,7 +378,7 @@ public class ControlPanel extends JPanel {
         statusPanel.setScore(0);
         statusPanel.resetTimer();
         statusPanel.setStatus("运行中");
-        statusPanel.setLastAction("无");
+        statusPanel.setLastAction("暂无操作");
         statusPanel.startTimer();
         updateButtonStates();
         

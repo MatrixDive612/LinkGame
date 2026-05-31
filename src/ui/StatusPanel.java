@@ -43,7 +43,7 @@ public class StatusPanel extends JPanel {
         scoreLabel = new JLabel("分数: 0");
         pairsLabel = new JLabel("剩余对数: 0");
         levelLabel = new JLabel("关卡: 1");
-        lastActionLabel = new JLabel("上一步: 无");
+        lastActionLabel = new JLabel("暂无操作");
         
         // 创建计时器，每秒更新一次
         timer = new Timer(1000, e -> {
@@ -271,7 +271,7 @@ public class StatusPanel extends JPanel {
     
     // 更新上一步操作记录
     public void setLastAction(String action) {
-        lastActionLabel.setText("上一步: " + action);
+        lastActionLabel.setText(action);
         repaint();
     }
 }

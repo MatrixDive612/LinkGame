@@ -397,9 +397,12 @@ public class BoardPanel extends JPanel {
             }
             lastEliminateTime = currentTime;
             
-            // 计算分数（基础10分，Combo递增）
+            // 计算分数（基础10分，3连消及以上才有奖励）
             int baseScore = 10;
-            int comboBonus = (comboCount - 1) * 5; // 每多一个combo额外+5分
+            int comboBonus = 0;
+            if (comboCount >= 3) {
+                comboBonus = (comboCount - 1) * 5; // 3连消及以上，每个连消+5分
+            }
             int totalScore = baseScore + comboBonus;
             
             Timer timer = new Timer(300, e -> {
@@ -421,12 +424,11 @@ public class BoardPanel extends JPanel {
                 if (statusPanel != null) {
                     statusPanel.addScore(totalScore);
                     
-                    // 更新操作记录
-                    String iconName = "图案" + c1.getIconIndex();
+                    // 更新操作记录 - 只显示加分
                     if (comboCount >= 3) {
-                        statusPanel.setLastAction("消除了[" + iconName + "] +" + totalScore + "分 连消" + comboCount);
+                        statusPanel.setLastAction("+ " + totalScore + "分（连消x" + comboCount + "）");
                     } else {
-                        statusPanel.setLastAction("消除了[" + iconName + "] +" + totalScore + "分");
+                        statusPanel.setLastAction("+ " + totalScore + "分");
                     }
                     
                     // 更新剩余对数
@@ -452,12 +454,66 @@ public class BoardPanel extends JPanel {
                             controlPanel.notifyGameEnded();
                         }
                         
-                        JOptionPane.showMessageDialog(BoardPanel.this, 
-                            "恭喜通关！\n得分: " + statusPanel.getScore() + "\n用时: " + formatTime(statusPanel.getElapsedTime()), 
-                            "胜利", 
-                            JOptionPane.INFORMATION_MESSAGE);
+                        // 创建自定义胜利弹窗
+                        JDialog victoryDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "游戏胜利", true);
+                        victoryDialog.setLayout(new BorderLayout());
+                        victoryDialog.setSize(500, 300);
+                        
+                        // 设置对话框在游戏窗口中间
+                        Window parentWin = SwingUtilities.getWindowAncestor(this);
+                        if (parentWin != null) {
+                            int dialogX = parentWin.getX() + (parentWin.getWidth() - 500) / 2;
+                            int dialogY = parentWin.getY() + (parentWin.getHeight() - 300) / 2 + 100;
+                            victoryDialog.setLocation(dialogX, dialogY);
+                        } else {
+                            victoryDialog.setLocationRelativeTo(this);
+                        }
+                        
+                        // 创建主面板
+                        JPanel mainPanel = new JPanel();
+                        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+                        mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+                        
+                        // 标题
+                        JLabel titleLabel = new JLabel("恭喜通关！", SwingConstants.CENTER);
+                        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 24));
+                        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                        
+                        // 得分和用时
+                        String resultText = String.format("得分: %d\n用时: %s", 
+                            statusPanel.getScore(), 
+                            formatTime(statusPanel.getElapsedTime()));
+                        JLabel resultLabel = new JLabel(resultText, SwingConstants.CENTER);
+                        resultLabel.setFont(new Font("微软雅黑", Font.PLAIN, 18));
+                        resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                        resultLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 30, 0));
+                        
+                        // 按钮面板
+                        JPanel buttonPanel = new JPanel();
+                        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
+                        
+                        JButton menuButton = new JButton("返回菜单");
+                        menuButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
+                        menuButton.setPreferredSize(new Dimension(150, 45));
+                        menuButton.addActionListener(ev -> {
+                            victoryDialog.dispose();
+                            java.awt.Window window = SwingUtilities.getWindowAncestor(BoardPanel.this);
+                            if (window != null) {
+                                window.dispose();
+                                app.Main.showDifficultySelection();
+                            }
+                        });
+                        
+                        buttonPanel.add(menuButton);
+                        
+                        // 组装面板
+                        mainPanel.add(titleLabel);
+                        mainPanel.add(resultLabel);
+                        mainPanel.add(buttonPanel);
+                        
+                        victoryDialog.add(mainPanel, BorderLayout.CENTER);
+                        victoryDialog.setVisible(true);
                     } else if (!hasAvailableMoves()) {
-                        // 死局检测
                         statusPanel.setStatus("死局！");
                         statusPanel.stopTimer();
                         
@@ -486,25 +542,31 @@ public class BoardPanel extends JPanel {
             timer.setRepeats(false);
             timer.start();
         } else {
-            // 不能连接
+            // 不能连接 - 中断连消
             if (statusPanel != null) {
                 Cell c1 = gameBoard.getCell(firstSelected.getRow(), firstSelected.getCol());
                 Cell c2 = gameBoard.getCell(secondSelected.getRow(), secondSelected.getCol());
                 
                 if (c1.getIconIndex() != c2.getIconIndex()) {
                     // 图案不同，取消第一个选择，保留第二个
-                    statusPanel.setLastAction("图案不同，请重新选择");
+                    statusPanel.setLastAction("图案不同");
+                    // 中断连消
+                    comboCount = 0;
+                    lastEliminateTime = 0;
                     gameBoard.clearAllChosen();
                     secondCell.setChosen(true);
                     firstSelected = secondSelected;
                     secondSelected = null;
                 } else {
                     // 图案相同但无法连接
-                    statusPanel.setLastAction("无法连接，请重新选择");
+                    statusPanel.setLastAction("无法连接");
                     JOptionPane.showMessageDialog(this, 
                         "图案相同但无法连接！", 
                         "提示", 
                         JOptionPane.WARNING_MESSAGE);
+                    // 中断连消
+                    comboCount = 0;
+                    lastEliminateTime = 0;
                     gameBoard.clearAllChosen();
                     firstSelected = null;
                     secondSelected = null;
