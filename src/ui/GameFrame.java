@@ -73,7 +73,9 @@ public class GameFrame extends JFrame{
             } while (!Utils.isSolvable(new GameBoard(12, 12, board), true));
             
             boardPanel = new BoardPanel(new GameBoard(12, 12, board), 0, 100, width, height - 200, true);
-        } else {
+        }
+
+        else {
             // 简单模式：11x11棋盘
             board = new Cell[11][11];
             for (int i = 0; i < 11; ++i)
