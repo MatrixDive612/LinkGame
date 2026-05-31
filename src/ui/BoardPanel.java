@@ -380,7 +380,7 @@ public class BoardPanel extends JPanel {
         repaint();
         
         // 检查是否可以连接
-        if (canConnect(firstSelected, secondSelected, lineList)) {
+        if (canConnect(firstSelected, secondSelected)) {
             // 可以连接，执行消除
             animating = true;
             showLine(
