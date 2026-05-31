@@ -2,6 +2,7 @@ package utils;
 
 import model.Cell;
 import model.GameBoard;
+import model.Line;
 import model.Position;
 import ui.BoardPanel;
 
@@ -41,78 +42,86 @@ public class Utils {
         }
         return res;
     }
-    public static boolean findZeroTurn(GameBoard gameBoard, Position posA, Position posB) {
-        boolean tmpRes0 = true;
+
+    public static boolean findZeroTurn(GameBoard gameBoard, Position posA, Position posB, List<Line> lineList) {
+        boolean tmpRes0 = true;// A and B can connect
+
+        // on the same column:
         if (posA.getCol() == posB.getCol()) {
             int smallLine = Math.min(posA.getRow(), posB.getRow());
             int largeLine = Math.max(posA.getRow(), posB.getRow());
-            //for (int i = smallLine + 1; i < largeLine - 1; i++) {
-            //mine:
+
+            // check if the route is blocked:
             for (int i = smallLine + 1; i < largeLine; i++) {
                 if (!gameBoard.getCell(i, posA.getCol()).isEmpty()) {
-                    tmpRes0 = false;
+                    tmpRes0 = false;// A and B can't connect
                     break;
                 }
             }
-            if (tmpRes0) {
+            if (tmpRes0) {// the route isn't blocked
+                lineList.add(new Line(posA, posB));
                 return true;
             }
         }
+
+        // on the same row:
         if (posA.getRow() == posB.getRow()) {
             int smallCol = Math.min(posA.getCol(), posB.getCol());
             int largeCol = Math.max(posA.getCol(), posB.getCol());
-            //for (int i = smallCol + 1; i < largeCol - 1; i++) {
-            //mine:
+
+            // check if the route is blocked:
             for (int i = smallCol + 1; i < largeCol; i++) {
                 if (!gameBoard.getCell(posA.getRow(), i).isEmpty()) {
-                    tmpRes0 = false;
+                    tmpRes0 = false;// A and B can't connect
                     break;
                 }
             }
-            if (tmpRes0) {
+            if (tmpRes0) {// the route isn't blocked
+                lineList.add(new Line(posA, posB));
                 return true;
             }
         }
-        return false;
+
+        return false;// A and B are neither on the same column nor the same row
     }
-    public static boolean findOneTurn(GameBoard gameBoard, Position posA, Position posB) {
-        //if (posA.getCol() != posB.getCol() && posA.getRow() != posB.getCol()) {
-        //mine:
-        if (posA.getCol() != posB.getCol() && posA.getRow() != posB.getRow()) {
+
+    public static boolean findOneTurn(GameBoard gameBoard, Position posA, Position posB, List<Line> lineList) {
+        //if (posA.getCol() != posB.getCol() && posA.getRow() != posB.getRow()) {// Maybe it isn't necessary?
             Position cornerPoint1 = new Position(posA.getRow(), posB.getCol());
             Position cornerPoint2 = new Position(posB.getRow(), posA.getCol());
+
             //missing: check if the two corner points are empty
-            if (findZeroTurn(gameBoard, posA, cornerPoint1) && findZeroTurn(gameBoard, posB, cornerPoint1) && gameBoard.getCell(posA.getRow(), posB.getCol()).isEmpty()) {
+            if (findZeroTurn(gameBoard, posA, cornerPoint1, lineList) && findZeroTurn(gameBoard, posB, cornerPoint1, lineList) && gameBoard.getCell(posA.getRow(), posB.getCol()).isEmpty())
                 return true;
-            }
-            if (findZeroTurn(gameBoard, posA, cornerPoint2) && findZeroTurn(gameBoard, posB, cornerPoint2) && gameBoard.getCell(posB.getRow(), posA.getCol()).isEmpty()) {
+            else lineList.clear(); //remember to clear the list
+
+            if (findZeroTurn(gameBoard, posA, cornerPoint2, lineList) && findZeroTurn(gameBoard, posB, cornerPoint2, lineList) && gameBoard.getCell(posB.getRow(), posA.getCol()).isEmpty())
                 return true;
-            }
-        }
+            else lineList.clear();
+        //}
+
         return false;
     }
-    public static boolean findTwoTurn(GameBoard gameBoard, Position posA, Position posB) {
+
+    public static boolean findTwoTurn(GameBoard gameBoard, Position posA, Position posB, List<Line> lineList) {
         List<Cell> reachablePoints = getReachablePointsInFourDirections(gameBoard, posA);
         for (Cell c: reachablePoints) {
-            if (findOneTurn(gameBoard, c.getPos(), posB)) {
+            if (findOneTurn(gameBoard, c.getPos(), posB, lineList)) {
+                lineList.add(new Line(posA, c.getPos()));
                 return true;
             }
+            else lineList.clear();
         }
         return false;
     }
 
-    public static boolean canLinkAB(GameBoard gameBoard, Position posA, Position posB){
-        if (findZeroTurn(gameBoard, posA, posB)) {
-            return true;
-        }
+    public static boolean canLinkAB(GameBoard gameBoard, Position posA, Position posB, List<Line> lineList){
+        if (findZeroTurn(gameBoard, posA, posB, lineList)) return true;
         // 判断1折，检查两个拐点
-        if (findOneTurn(gameBoard, posA, posB)) {
-            return true;
-        }
+        if (findOneTurn(gameBoard, posA, posB, lineList)) return true;
         // 判断2折
-        if (findTwoTurn(gameBoard, posA, posB)) {
-            return true;
-        }
+        if (findTwoTurn(gameBoard, posA, posB, lineList)) return true;
+
         return false;
     }
 
@@ -126,6 +135,7 @@ public class Utils {
             for (int j = 1; j < colCnt-1; j++)
                 board[i][j] = true;*/
 
+        List<Line> lineList = new ArrayList<>();
         boolean flag1 = false;
         do {
             flag1 = false;
@@ -137,7 +147,7 @@ public class Utils {
                             Cell c2 = gameBoard.getCell(k, m);
                             if (!c1.isEmpty() && !c2.isEmpty() && (i != k || j != m)) {//means that both cells are not deleted, and they're not the same cell
                                 if(c1.getIconIndex() == c2.getIconIndex())
-                                    if (canLinkAB(gameBoard, new Position(i, j), new Position(k, m))) {
+                                    if (canLinkAB(gameBoard, new Position(i, j), new Position(k, m), lineList)) {
                                         /*board[i][j] = false;
                                         board[k][m] = false;*/
                                         c1.setIsEmpty(true); c2.setIsEmpty(true);

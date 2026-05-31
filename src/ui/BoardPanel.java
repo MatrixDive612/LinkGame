@@ -54,13 +54,13 @@ public class BoardPanel extends JPanel {
         // 图案必须相同
         if(c1.getIconIndex() != c2.getIconIndex()) return false;
         // 检查路径是否合法（0/1/2折）
-        return Utils.canLinkAB(gameBoard, p1, p2);
+        return Utils.canLinkAB(gameBoard, p1, p2, lineList);
     }
 
     // 显示连接线
-    public void showLine(Cell c1, Cell c2) {
+    public void showLine(Position pos1, Position pos2) {
         lineList.clear();
-        lineList.add(new Line(c1, c2));
+        lineList.add(new Line(pos1, pos2));
         lineVisible = true;
         repaint();
     }
@@ -321,13 +321,14 @@ public class BoardPanel extends JPanel {
                         
                         // 图案相同且可以连接
                         if (c1.getIconIndex() == c2.getIconIndex() && 
-                            Utils.canLinkAB(gameBoard, new Position(i, j), new Position(k, m))) {
+                            Utils.canLinkAB(gameBoard, new Position(i, j), new Position(k, m), lineList)) {
                             return true;
                         }
                     }
                 }
             }
         }
+        lineList.clear();
         return false;
     }
     
@@ -380,13 +381,17 @@ public class BoardPanel extends JPanel {
         repaint();
         
         // 检查是否可以连接
+        lineList.clear();
         if (canConnect(firstSelected, secondSelected)) {
             // 可以连接，执行消除
             animating = true;
-            showLine(
+            /*showLine(
                 gameBoard.getCell(firstSelected.getRow(), firstSelected.getCol()),
                 gameBoard.getCell(secondSelected.getRow(), secondSelected.getCol())
-            );
+            );*/
+            //mine:
+            lineVisible = true;
+            repaint();
             
             // 计算Combo
             long currentTime = System.currentTimeMillis();
@@ -635,8 +640,8 @@ public class BoardPanel extends JPanel {
         g2.setStroke(new BasicStroke(3));
         if (lineVisible) {
             for (Line line: lineList) {
-                Rectangle rec1 = getRectangle(line.getCell1().getPos());
-                Rectangle rec2 = getRectangle(line.getCell2().getPos());
+                Rectangle rec1 = getRectangle(line.getPos1());
+                Rectangle rec2 = getRectangle(line.getPos2());
                 g.drawLine(
                     (int) rec1.getCenterPosition().getX(), 
                     (int) rec1.getCenterPosition().getY(), 
