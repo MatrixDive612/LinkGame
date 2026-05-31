@@ -22,21 +22,27 @@ public class GameFrame extends JFrame{
     Random random = new Random();
     boolean isHardMode; // 是否为困难模式
     String theme; // 当前主题（fruit/number/animal）
+    String music; // 当前音乐（calm/cheerful/dynamic）
 
     public GameFrame(String title, int width, int height, boolean isHardMode) {
-        this(title, width, height, isHardMode, null, "fruit");
+        this(title, width, height, isHardMode, null, "fruit", "calm");
     }
     
     public GameFrame(String title, int width, int height, boolean isHardMode, String theme) {
-        this(title, width, height, isHardMode, null, theme);
+        this(title, width, height, isHardMode, null, theme, "calm");
+    }
+    
+    public GameFrame(String title, int width, int height, boolean isHardMode, String theme, String music) {
+        this(title, width, height, isHardMode, null, theme, music);
     }
     
     // 从存档创建游戏窗口的构造函数
-    private GameFrame(String title, int width, int height, boolean isHardMode, GameData saveData, String theme) {
+    private GameFrame(String title, int width, int height, boolean isHardMode, GameData saveData, String theme, String music) {
         super(title);
         this.setResizable(true);
         this.isHardMode = isHardMode;
         this.theme = theme != null ? theme : "fruit"; // 默认水果主题
+        this.music = music != null ? music : "calm"; // 默认宁静音乐
         
         this.title = title;
         this.width = width;
@@ -64,7 +70,7 @@ public class GameFrame extends JFrame{
             this.statusPanel = new StatusPanel(0, 0, width, 100);
             
             // 创建控制面板
-            this.controlPanel = new ControlPanel(statusPanel, boardPanel, 0, height - 100, width, 100, isHardMode);
+            this.controlPanel = new ControlPanel(statusPanel, boardPanel, 0, height - 100, width, 100, isHardMode, theme, music);
             
             // 设置相互引用（会自动调用 updateRemainingPairs）
             boardPanel.setStatusPanel(statusPanel);
@@ -85,6 +91,10 @@ public class GameFrame extends JFrame{
             
             // 更新按钮状态
             controlPanel.refreshButtons();
+            
+            // 播放默认背景音乐
+            MusicManager musicManager = MusicManager.getInstance();
+            musicManager.playMusic(this.music);
         } else {
             // 新建游戏
             this.boardPanel = createBoardPanel();
@@ -93,7 +103,7 @@ public class GameFrame extends JFrame{
             this.statusPanel = new StatusPanel(0, 0, width, 100);
             
             // 创建控制面板
-            this.controlPanel = new ControlPanel(statusPanel, boardPanel, 0, height - 100, width, 100, isHardMode);
+            this.controlPanel = new ControlPanel(statusPanel, boardPanel, 0, height - 100, width, 100, isHardMode, theme, music);
             
             // 设置相互引用（会自动调用 updateRemainingPairs）
             boardPanel.setStatusPanel(statusPanel);
@@ -111,6 +121,10 @@ public class GameFrame extends JFrame{
             
             // 更新按钮状态（因为状态变成了"运行中"，保存按钮应该可用）
             controlPanel.refreshButtons();
+            
+            // 播放默认背景音乐
+            MusicManager musicManager = MusicManager.getInstance();
+            musicManager.playMusic(this.music);
         }
         
         this.setVisible(true);
@@ -139,21 +153,29 @@ public class GameFrame extends JFrame{
                 if (choice == JOptionPane.YES_OPTION) {
                     // 用户选择保存
                     if (saveGameProgress()) {
-                        // 保存成功后退出
+                        // 保存成功后停止音乐并退出
+                        MusicManager musicManager = MusicManager.getInstance();
+                        musicManager.stopMusic();
                         System.exit(0);
                     }
                     // 如果保存失败，不退出，让用户继续游戏
                 } else {
-                    // 用户选择不保存，直接退出（存档已清空）
+                    // 用户选择不保存，停止音乐并退出（存档已清空）
+                    MusicManager musicManager = MusicManager.getInstance();
+                    musicManager.stopMusic();
                     System.exit(0);
                 }
             } else {
                 // 游戏已结束：清空所有存档后退出
                 controlPanel.clearAllSaves();
+                MusicManager musicManager = MusicManager.getInstance();
+                musicManager.stopMusic();
                 System.exit(0);
             }
         } else {
-            // 游客模式，直接退出
+            // 游客模式，停止音乐并直接退出
+            MusicManager musicManager = MusicManager.getInstance();
+            musicManager.stopMusic();
             System.exit(0);
         }
     }
@@ -221,7 +243,7 @@ public class GameFrame extends JFrame{
     // 从存档创建游戏窗口的静态工厂方法
     public static GameFrame createFromSave(GameData saveData) {
         boolean isHardMode = "HARD".equals(saveData.getDifficulty());
-        return new GameFrame("连连看", 1000, 1000, isHardMode, saveData, "fruit");
+        return new GameFrame("连连看", 1000, 1000, isHardMode, saveData, "fruit", "calm");
     }
     
     // 创建棋盘面板

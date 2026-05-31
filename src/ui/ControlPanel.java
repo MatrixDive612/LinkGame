@@ -16,6 +16,7 @@ public class ControlPanel extends JPanel {
     JButton loadButton; // 读取按钮
     JButton leaderboardButton; // 排行榜按钮
     JButton themeButton; // 切换皮肤按钮
+    JButton musicButton; // 切换音乐按钮
     int offSetX;
     int offSetY;
     int width;
@@ -23,12 +24,17 @@ public class ControlPanel extends JPanel {
     UserManager userManager; // 用户管理器
     boolean isHardMode; // 难度模式
     String currentTheme; // 当前主题
+    String currentMusic; // 当前音乐
     
     public ControlPanel(StatusPanel statusPanel, BoardPanel boardPanel, int offSetX, int offSetY, int width, int height, boolean isHardMode) {
-        this(statusPanel, boardPanel, offSetX, offSetY, width, height, isHardMode, "fruit");
+        this(statusPanel, boardPanel, offSetX, offSetY, width, height, isHardMode, "fruit", "calm");
     }
     
     public ControlPanel(StatusPanel statusPanel, BoardPanel boardPanel, int offSetX, int offSetY, int width, int height, boolean isHardMode, String theme) {
+        this(statusPanel, boardPanel, offSetX, offSetY, width, height, isHardMode, theme, "calm");
+    }
+    
+    public ControlPanel(StatusPanel statusPanel, BoardPanel boardPanel, int offSetX, int offSetY, int width, int height, boolean isHardMode, String theme, String music) {
         this.setLayout(null);
         this.setBounds(offSetX, offSetY, width, height);
         this.offSetX = offSetX;
@@ -39,50 +45,58 @@ public class ControlPanel extends JPanel {
         this.boardPanel = boardPanel;
         this.isHardMode = isHardMode;
         this.currentTheme = theme != null ? theme : "fruit";
+        this.currentMusic = music != null ? music : "calm";
         this.userManager = UserManager.getInstance();
         
-        // 创建按钮（5个按钮）
-        int btnWidth = 100;
+        // 创建按钮（6个按钮）
+        int btnWidth = 90;
         int btnHeight = 45;
-        int spacing = 15;
-        int totalWidth = btnWidth * 5 + spacing * 4;
+        int spacing = 12;
+        int totalWidth = btnWidth * 6 + spacing * 5;
         int startX = (width - totalWidth) / 2;
         int startY = (height - btnHeight) / 2 - 10;
         
         // 重新开始按钮
         restartButton = new JButton("重新开始");
-        restartButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
+        restartButton.setFont(new Font("微软雅黑", Font.BOLD, 13));
         restartButton.setBounds(startX, startY, btnWidth, btnHeight);
         restartButton.setFocusPainted(false);
         this.add(restartButton);
         
         // 保存按钮
         saveButton = new JButton("保存游戏");
-        saveButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
+        saveButton.setFont(new Font("微软雅黑", Font.BOLD, 13));
         saveButton.setBounds(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
         saveButton.setFocusPainted(false);
         this.add(saveButton);
         
         // 读取按钮
         loadButton = new JButton("读取存档");
-        loadButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
+        loadButton.setFont(new Font("微软雅黑", Font.BOLD, 13));
         loadButton.setBounds(startX + (btnWidth + spacing) * 2, startY, btnWidth, btnHeight);
         loadButton.setFocusPainted(false);
         this.add(loadButton);
         
         // 排行榜按钮
         leaderboardButton = new JButton("排行榜");
-        leaderboardButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
+        leaderboardButton.setFont(new Font("微软雅黑", Font.BOLD, 13));
         leaderboardButton.setBounds(startX + (btnWidth + spacing) * 3, startY, btnWidth, btnHeight);
         leaderboardButton.setFocusPainted(false);
         this.add(leaderboardButton);
         
         // 切换皮肤按钮
         themeButton = new JButton("切换皮肤");
-        themeButton.setFont(new Font("微软雅黑", Font.BOLD, 14));
+        themeButton.setFont(new Font("微软雅黑", Font.BOLD, 13));
         themeButton.setBounds(startX + (btnWidth + spacing) * 4, startY, btnWidth, btnHeight);
         themeButton.setFocusPainted(false);
         this.add(themeButton);
+        
+        // 切换音乐按钮
+        musicButton = new JButton(getMusicDisplayName());
+        musicButton.setFont(new Font("微软雅黑", Font.BOLD, 13));
+        musicButton.setBounds(startX + (btnWidth + spacing) * 5, startY, btnWidth, btnHeight);
+        musicButton.setFocusPainted(false);
+        this.add(musicButton);
         
         // 更新按钮状态（游客不可用保存/读取）
         updateButtonStates();
@@ -110,6 +124,11 @@ public class ControlPanel extends JPanel {
         // 切换皮肤按钮事件
         this.themeButton.addActionListener(e -> {
             handleThemeSwitch();
+        });
+        
+        // 切换音乐按钮事件
+        this.musicButton.addActionListener(e -> {
+            handleMusicSwitch();
         });
     }
     
@@ -304,6 +323,20 @@ public class ControlPanel extends JPanel {
         }
     }
     
+    // 获取音乐显示名称
+    private String getMusicDisplayName() {
+        switch (currentMusic) {
+            case "calm":
+                return "🎵宁静";
+            case "cheerful":
+                return "🎶欢快";
+            case "dynamic":
+                return "🎸动感";
+            default:
+                return "🎵宁静";
+        }
+    }
+    
     // 处理切换皮肤
     private void handleThemeSwitch() {
         // 检查游戏是否在进行中
@@ -384,6 +417,71 @@ public class ControlPanel extends JPanel {
         
         JOptionPane.showMessageDialog(this,
             "已切换到" + getThemeDisplayName() + "！",
+            "切换成功",
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    // 处理切换音乐
+    private void handleMusicSwitch() {
+        // 显示音乐选择对话框
+        String[] musics = {"🎵 宁静", "🎶 欢快", "🎸 动感"};
+        
+        // 找到当前音乐的索引
+        int defaultIndex = 0;
+        if ("calm".equals(currentMusic)) {
+            defaultIndex = 0;
+        } else if ("cheerful".equals(currentMusic)) {
+            defaultIndex = 1;
+        } else if ("dynamic".equals(currentMusic)) {
+            defaultIndex = 2;
+        }
+        
+        String selected = (String) JOptionPane.showInputDialog(
+            this,
+            "请选择背景音乐：",
+            "切换音乐",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            musics,
+            musics[defaultIndex]
+        );
+        
+        // 用户取消了选择
+        if (selected == null) {
+            return;
+        }
+        
+        // 根据选择设置音乐
+        String newMusic = "calm";
+        if (selected.equals(musics[0])) {
+            newMusic = "calm";
+        } else if (selected.equals(musics[1])) {
+            newMusic = "cheerful";
+        } else if (selected.equals(musics[2])) {
+            newMusic = "dynamic";
+        }
+        
+        // 如果选择的音乐和当前相同，不需要切换
+        if (newMusic.equals(currentMusic)) {
+            JOptionPane.showMessageDialog(this,
+                "当前已经是" + getMusicDisplayName() + "了！",
+                "提示",
+                JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // 应用新音乐
+        currentMusic = newMusic;
+        
+        // 更新按钮文字
+        musicButton.setText(getMusicDisplayName());
+        
+        // 播放新音乐
+        MusicManager musicManager = MusicManager.getInstance();
+        musicManager.playMusic(currentMusic);
+        
+        JOptionPane.showMessageDialog(this,
+            "已切换到" + getMusicDisplayName() + "！",
             "切换成功",
             JOptionPane.INFORMATION_MESSAGE);
     }
