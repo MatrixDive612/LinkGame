@@ -11,7 +11,6 @@ import java.util.List;
 public class ControlPanel extends JPanel {
     StatusPanel statusPanel; // 状态面板引用
     BoardPanel boardPanel; // 棋盘面板引用
-    JButton startButton; // 开始按钮
     JButton restartButton; // 重新开始按钮
     JButton saveButton; // 保存按钮
     JButton loadButton; // 读取按钮
@@ -35,50 +34,36 @@ public class ControlPanel extends JPanel {
         this.userManager = UserManager.getInstance();
         
         // 创建按钮
-        int btnWidth = 100;
-        int btnHeight = 40;
-        int startY = (height - btnHeight) / 2;
-        int spacing = 120;
-        int totalWidth = spacing * 3 + btnWidth;
+        int btnWidth = 120;
+        int btnHeight = 45;
+        int spacing = 30;
+        int totalWidth = btnWidth * 3 + spacing * 2;
         int startX = (width - totalWidth) / 2;
-        
-        // 开始按钮
-        startButton = new JButton("开始");
-        startButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
-        startButton.setBounds(startX, startY, btnWidth, btnHeight);
-        startButton.setFocusPainted(false);
-        this.add(startButton);
+        int startY = (height - btnHeight) / 2 - 10;
         
         // 重新开始按钮
         restartButton = new JButton("重新开始");
         restartButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
-        restartButton.setBounds(startX + spacing, startY, btnWidth, btnHeight);
+        restartButton.setBounds(startX, startY, btnWidth, btnHeight);
         restartButton.setFocusPainted(false);
         this.add(restartButton);
         
         // 保存按钮
         saveButton = new JButton("保存游戏");
         saveButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
-        saveButton.setBounds(startX + spacing * 2, startY, btnWidth, btnHeight);
+        saveButton.setBounds(startX + btnWidth + spacing, startY, btnWidth, btnHeight);
         saveButton.setFocusPainted(false);
         this.add(saveButton);
         
         // 读取按钮
         loadButton = new JButton("读取存档");
         loadButton.setFont(new Font("微软雅黑", Font.BOLD, 16));
-        loadButton.setBounds(startX + spacing * 3, startY, btnWidth, btnHeight);
+        loadButton.setBounds(startX + (btnWidth + spacing) * 2, startY, btnWidth, btnHeight);
         loadButton.setFocusPainted(false);
         this.add(loadButton);
         
         // 更新按钮状态（游客不可用保存/读取）
         updateButtonStates();
-        
-        // 开始按钮事件
-        this.startButton.addActionListener(e -> {
-            statusPanel.setStatus("运行中");
-            statusPanel.startTimer();
-            updateButtonStates(); // 更新按钮状态
-        });
         
         // 重新开始按钮事件
         this.restartButton.addActionListener(e -> {
@@ -151,9 +136,9 @@ public class ControlPanel extends JPanel {
             }
             statusPanel.setScore(0); // 重置分数
             statusPanel.resetTimer(); // 重置时间
-            statusPanel.setStatus("运行中"); // 设置为运行中状态
-            statusPanel.startTimer(); // 启动计时器
+            statusPanel.setStatus("运行中"); // 重置状态
             statusPanel.setLastAction("无"); // 重置操作记录
+            statusPanel.startTimer(); // 重新启动计时器
             updateButtonStates(); // 更新按钮状态
         }
     }
@@ -365,7 +350,7 @@ public class ControlPanel extends JPanel {
             }
             
             int confirm = JOptionPane.showConfirmDialog(this, 
-                "读取存档" + slot + "将开始新的一局游戏。\n是否继续？", 
+                "读取存档" + slot + "进行复盘（仅查看，不可继续游戏）。\n是否继续？", 
                 "读取存档复盘", 
                 JOptionPane.YES_NO_OPTION);
             
@@ -375,16 +360,16 @@ public class ControlPanel extends JPanel {
                     boardPanel.loadBoardFromState(gameData.getBoardState());
                     // 恢复分数
                     statusPanel.setScore(gameData.getScore());
-                    // 恢复剩余时间
+                    // 恢复剩余时间（但不启动计时器）
                     statusPanel.setTotalTime(gameData.getRemainingTime());
                     // 恢复关卡
                     statusPanel.setLevel(gameData.getLevel());
-                    // 设置状态为运行中
-                    statusPanel.setStatus("运行中");
-                    statusPanel.startTimer();
+                    // 设置状态为胜利（表示这是复盘，不能继续玩）
+                    statusPanel.setStatus("胜利！");
+                    // 注意：不调用 startTimer()，所以时间不会走动
                     
                     JOptionPane.showMessageDialog(this, 
-                        "存档" + slot + "读取成功！\n开始复盘之前的游戏进度。", 
+                        "存档" + slot + "读取成功！\n这是复盘模式，您可以查看当时的游戏状态。", 
                         "读取成功", 
                         JOptionPane.INFORMATION_MESSAGE);
                     
@@ -402,10 +387,36 @@ public class ControlPanel extends JPanel {
     // 公开方法：供外部调用更新按钮状态（例如游戏结束时）
     public void notifyGameEnded() {
         updateButtonStates();
+        
+        // 如果是失败状态，更新用户统计
+        String currentStatus = statusPanel.getStatus();
+        if ("失败！".equals(currentStatus) && userManager.isRegisteredUser()) {
+            userManager.updateCurrentUserStats(
+                statusPanel.getScore(),
+                false, // 失败
+                statusPanel.getElapsedTime()
+            );
+        }
     }
     
     // 刷新按钮状态
     public void refreshButtons() {
         updateButtonStates();
+    }
+    
+    // 清空所有存档
+    public void clearAllSaves() {
+        if (!userManager.isRegisteredUser()) {
+            return;
+        }
+        
+        String username = userManager.getCurrentUser().getUsername();
+        
+        for (int i = 1; i <= 3; i++) {
+            java.io.File saveFile = new java.io.File("data/saves/" + username + "_save_" + i + ".dat");
+            if (saveFile.exists()) {
+                saveFile.delete();
+            }
+        }
     }
 }

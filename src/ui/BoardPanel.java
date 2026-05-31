@@ -109,6 +109,10 @@ public class BoardPanel extends JPanel {
     // 设置状态面板引用
     public void setStatusPanel(StatusPanel statusPanel) {
         this.statusPanel = statusPanel;
+        // 设置状态面板后立即更新剩余对数显示
+        if (this.gameBoard != null) {
+            updateRemainingPairs();
+        }
     }
     
     // 设置控制面板引用
@@ -288,6 +292,11 @@ public class BoardPanel extends JPanel {
     
     // 处理鼠标点击事件
     public void handleClick(int x, int y) {
+        // 只有在游戏进行中才允许操作
+        if (statusPanel != null && !"运行中".equals(statusPanel.getStatus())) {
+            return;
+        }
+        
         // 动画进行中不允许操作
         if (animating) {
             return;
